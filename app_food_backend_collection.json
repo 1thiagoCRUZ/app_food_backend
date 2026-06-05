@@ -1,0 +1,341 @@
+{
+  "info": {
+    "name": "App Food Backend API",
+    "description": "Collection completa das rotas do projeto App Food Backend",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao@email.com\",\n  \"password\": \"senha123\",\n  \"cpf\": \"12345678909\",\n  \"phone\": \"11999999999\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/register",
+              "host": ["{{base_url}}"],
+              "path": ["users", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"joao@email.com\",\n  \"password\": \"senha123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/login",
+              "host": ["{{base_url}}"],
+              "path": ["users", "login"]
+            }
+          }
+        },
+        {
+          "name": "List Users",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["users"]
+            }
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"João Silva Editado\",\n  \"phone\": \"11888888888\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/1",
+              "host": ["{{base_url}}"],
+              "path": ["users", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }] },
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/users/1",
+              "host": ["{{base_url}}"],
+              "path": ["users", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Restaurants",
+      "item": [
+        {
+          "name": "Register Restaurant",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pizzaria Boa\",\n  \"cnpj\": \"12345678000199\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/restaurants",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants"]
+            }
+          }
+        },
+        {
+          "name": "List Restaurants",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/restaurants",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants"]
+            }
+          }
+        },
+        {
+          "name": "Update Restaurant",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Pizzaria Muito Boa\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/restaurants/1",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Restaurant",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }] },
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/restaurants/1",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Catalog (Products)",
+      "item": [
+        {
+          "name": "Create Product",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurantId\": 1,\n  \"name\": \"Pizza Marguerita\",\n  \"description\": \"Molho de tomate, mussarela e manjericão\",\n  \"price\": 45.90\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/products",
+              "host": ["{{base_url}}"],
+              "path": ["products"]
+            }
+          }
+        },
+        {
+          "name": "List Products",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/products",
+              "host": ["{{base_url}}"],
+              "path": ["products"]
+            }
+          }
+        },
+        {
+          "name": "List Products by Restaurant",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/products?restaurantId=1",
+              "host": ["{{base_url}}"],
+              "path": ["products"],
+              "query": [
+                { "key": "restaurantId", "value": "1" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 49.90\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/products/1",
+              "host": ["{{base_url}}"],
+              "path": ["products", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }] },
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/products/1",
+              "host": ["{{base_url}}"],
+              "path": ["products", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Create Order",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurantId\": 1,\n  \"deliveryAddressId\": 1,\n  \"items\": [\n    {\n      \"productId\": 1,\n      \"name\": \"Pizza Marguerita\",\n      \"price\": 45.90,\n      \"quantity\": 2\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders",
+              "host": ["{{base_url}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "List Orders",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/orders",
+              "host": ["{{base_url}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "Get Order Details",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/orders/1",
+              "host": ["{{base_url}}"],
+              "path": ["orders", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Deliveries",
+      "item": [
+        {
+          "name": "List Available Deliveries",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/deliveries/available",
+              "host": ["{{base_url}}"],
+              "path": ["deliveries", "available"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payments",
+      "item": [
+        {
+          "name": "Checkout PIX",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{jwt_token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": 1,\n  \"method\": \"PIX\",\n  \"customerEmail\": \"joao@email.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/payments/checkout",
+              "host": ["{{base_url}}"],
+              "path": ["payments", "checkout"]
+            }
+          }
+        },
+        {
+          "name": "Webhook (Mercado Pago)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"payment.updated\",\n  \"data\": {\n    \"id\": \"sim_123456789\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/payments/webhook",
+              "host": ["{{base_url}}"],
+              "path": ["payments", "webhook"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
