@@ -21,7 +21,7 @@ export class UserRepository implements UserRepositoryPort {
       name: schema.name,
       email: Email.create(schema.email),
       password: Password.create(schema.passwordHash, true),
-      cpf: schema.cpf ? CPF.create(schema.cpf) : undefined,
+      cpf: schema.cpf ? CPF.reconstitute(schema.cpf) : undefined,
       phone: schema.phone || undefined,
       role: schema.role,
       photo: schema.photo,

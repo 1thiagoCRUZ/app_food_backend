@@ -17,7 +17,7 @@ export class RestaurantRepository implements RestaurantRepositoryPort {
     return Restaurant.create({
       id: schema.id,
       name: schema.name,
-      cnpj: CNPJ.create(schema.cnpj),
+      cnpj: CNPJ.reconstitute(schema.cnpj),
       isOpen: schema.isOpen,
       ownerId: schema.ownerId,
       photo: schema.photo,

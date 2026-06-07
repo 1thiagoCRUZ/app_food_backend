@@ -15,6 +15,11 @@ export class CNPJ {
         return new CNPJ(digits);
     }
 
+    public static reconstitute(rawValue: string): CNPJ {
+        const digits = rawValue.replace(/\D/g, '');
+        return new CNPJ(digits);
+    }
+
     public getValue(): string {
         return this.value;
     }

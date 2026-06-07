@@ -14,6 +14,11 @@ export class CPF {
     }
     return new CPF(digits);
   }
+
+  public static reconstitute(rawCpf: string): CPF {
+    const digits = rawCpf.replace(/\D/g, '');
+    return new CPF(digits);
+  }
   public getValue(): string {
     return this.value;
   }
