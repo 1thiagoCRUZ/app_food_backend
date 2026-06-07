@@ -42,6 +42,16 @@ export class OrderSchema {
 
   @OneToMany(() => OrderItemSchema, item => item.order, { cascade: true })
   items: OrderItemSchema[];
+
+  @Column('decimal', { precision: 10, scale: 2, default: 0 })
+  subtotal: number;
+
+  @Column('decimal', { precision: 10, scale: 2, nullable: true })
+  discount?: number;
+
+  @Column({ nullable: true })
+  couponCode?: string;
+
   @Column('decimal', { precision: 10, scale: 2 })
   total: number;
   @Column({ default: 'AWAITING_PAYMENT' })

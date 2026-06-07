@@ -63,6 +63,12 @@ export class OrderController {
     return { message: 'Pedido entregue com sucesso' };
   }
 
+  @Patch(':id/cancel')
+  @HttpCode(HttpStatus.OK)
+  async cancel(@Param('id') id: number, @CurrentUser('userId') userId: number, @CurrentUser('role') role: string) {
+    return this.orderFacade.cancel(id, userId, role);
+  }
+
   @Get(':id')
   async getOne(@Param('id') id: number, @CurrentUser('userId') userId: number) {
     return this.orderFacade.getOne(id, userId);

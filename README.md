@@ -1,410 +1,149 @@
-# 🍔 App Food Backend — Clone do iFood
+# 🍔 App Food - Enterprise Backend Architecture
 
-Backend de delivery de comida construído com **NestJS**, **TypeORM**, **PostgreSQL**, **Socket.IO** e integração com **Mercado Pago** e **Google Maps**, seguindo os princípios de **Clean Architecture** e **Domain-Driven Design (DDD)**.
+Este repositório é a base do **App Food**, um ecossistema de delivery robusto projetado para alta escalabilidade e manutenibilidade. Diferente de projetos comuns em MVC, este backend foi estruturado seguindo rigorosamente princípios de **Domain-Driven Design (DDD)** e **Arquitetura Hexagonal (Ports & Adapters)**.
 
----
-
-## 📖 Para Iniciantes — A Analogia da Praça de Alimentação
-
-Imagine que este sistema é uma gigante **Praça de Alimentação de um Shopping**. Dentro dela, existem "departamentos" independentes que se comunicam apenas por "fichinhas de identificação" (IDs numéricos).
-
-| Departamento | Responsabilidade |
-|:---|:---|
-| 🧑 **Users** | A recepção onde os clientes se cadastram (com CPF, telefone e endereço) |
-| 🏪 **Restaurants** | O cadastro das lanchonetes e suas localizações no mapa |
-| 📋 **Catalog** | O cardápio com todos os produtos de cada restaurante |
-| 🛵 **Orders** | O balcão de pedidos que registra o que foi pedido e por quanto |
-| 📦 **Delivery** | O controle dos entregadores e o status das entregas |
-| 📡 **Communications** | O rádio em tempo real que avisa todo mundo sobre tudo |
-| 💸 **Payments** | O caixa automático integrado ao Mercado Pago |
-
-**A Regra de Ouro:** Nenhum departamento "entra na sala" de outro pelo banco de dados. Eles só trocam o número da fichinha (ex: `userId: 1`). Quem orquestra o relacionamento é a lógica de negócio, nunca o banco!
+O objetivo desta documentação é servir como um **Guia de Estudos Avançado** sobre a engenharia de software aplicada no projeto.
 
 ---
 
-## 🏛️ Arquitetura do Sistema
+## 🏗️ 1. Padrões Arquiteturais Adotados
 
-```
-src/
-├── app.module.ts                 # Módulo raiz da aplicação
-├── main.ts                       # Bootstrap do servidor
-├── shared/                       # ← Pasta compartilhada (ver seção dedicada abaixo)
-│   ├── shared.module.ts
-│   ├── ports/
-│   │   └── geo-coding.port.ts    # Interface do serviço de geolocalização
-│   ├── adapters/
-│   │   └── google-maps.adapter.ts # Implementação real do Google Maps
-│   ├── config/
-│   │   └── env.validation.ts     # Validação de variáveis de ambiente no startup
-│   └── typeorm/
-│       └── config/orm.config.ts  # Configuração do banco de dados
+### 1.1. Arquitetura Hexagonal (Ports & Adapters)
+O objetivo principal da Arquitetura Hexagonal é **isolar a regra de negócio (Domínio)** de agentes externos (Banco de Dados, Frameworks web, APIs de terceiros). 
+No App Food, o Domínio não sabe que estamos usando NestJS ou PostgreSQL. Toda a comunicação com o mundo externo é feita através de **Ports** (Interfaces) e **Adapters** (Implementações concretas).
+
+### 1.2. Domain-Driven Design (DDD)
+Aplicamos os seguintes conceitos de DDD para proteger as invariantes de negócio:
+- **Bounded Contexts (Contextos Delimitados):** O sistema não é um monólito misturado. Ele é dividido em Módulos independentes (`Users`, `Restaurants`, `Catalog`, `Orders`).
+- **Entities (Entidades):** Objetos de negócio que possuem identidade única (ID) e estado mutável através de métodos seguros, não através de setters anêmicos.
+- **Value Objects (Objetos de Valor):** Tipos primitivos encapsulados que se autovalidam. Exemplo: A classe `CPF` não é uma string; ela possui lógica interna no construtor que lança exceção se o cálculo do dígito verificador for inválido.
+
+---
+
+## 📂 2. Estrutura de Diretórios (Por Contexto)
+
+Dentro de `src/contexts/`, cada módulo de negócio obedece exatamente à mesma topologia de 4 camadas:
+
+```text
+src/contexts/<nome-do-modulo>/
+├── domain/            # 1. CORE: Regras puras. Sem dependências externas.
+│   ├── entities/      # Classes ricas (Ex: Order, User).
+│   ├── exceptions/    # Erros de domínio (Ex: InvalidCpfException).
+│   └── value-objects/ # Tipos base (Ex: CpfVO, CnpjVO).
 │
-└── contexts/                     # ← Os 7 Bounded Contexts (departamentos)
-    ├── users/
-    ├── restaurants/
-    ├── catalog/
-    ├── orders/
-    ├── delivery/
-    ├── communications/
-    └── payments/
+├── application/       # 2. ORQUESTRADOR: Casos de Uso.
+│   ├── ports/         # Interfaces que a infraestrutura DEVE implementar.
+│   ├── use-cases/     # Lógicas como CreateOrderUseCase, AcceptOrderUseCase.
+│   └── *.facade.ts    # Padrão Facade que agrupa casos de uso para o Controller.
+│
+├── infrastructure/    # 3. EXTERNO: Adapters para o mundo real.
+│   ├── database/      # TypeORM Schemas e Repositórios concretos.
+│   └── providers/     # Integrações (Ex: BcryptHashProvider).
+│
+└── presentation/      # 4. ENTRADA: Interface de comunicação (HTTP).
+    ├── controllers/   # Recebe as chamadas REST (NestJS Controllers).
+    └── dtos/          # Data Transfer Objects com class-validator (@IsString).
 ```
 
-Cada contexto segue a mesma estrutura interna em 4 camadas:
-
-```
-contexts/[nome]/
-├── domain/              # 🧠 Regras de negócio puras (sem framework, sem banco)
-│   ├── entities/        # Entidades de domínio
-│   └── value-objects/   # Objetos de Valor (CPF, Email, CNPJ, Phone...)
-├── application/         # 🎯 Casos de uso e portas de abstração
-│   ├── ports/           # Interfaces (contratos) para repositórios e serviços externos
-│   └── use-cases/       # A lógica de cada ação do sistema
-├── infrastructure/      # 🔧 Implementações concretas (banco, APIs externas)
-│   ├── database/        # Schemas TypeORM e Repositórios
-│   ├── adapters/        # Adaptadores para serviços externos
-│   └── providers/       # Provedores (ex: Bcrypt)
-└── presentation/        # 🌐 Interface HTTP (Controllers + DTOs)
-    ├── controllers/
-    └── dtos/
-```
+### Regra de Dependência
+A camada `domain` **nunca** importa nada das outras. A `application` só conhece o `domain`. A `infrastructure` e `presentation` enxergam a `application` e o `domain`. **A Inversão de Dependência (SOLID)** garante esse isolamento.
 
 ---
 
-## 📦 Explicação de Cada Contexto
+## 🧩 3. Bounded Contexts (Os Módulos de Negócio)
 
-### 1. 🧑 `users/` — Usuários e Clientes
+### 👤 3.1. Users (Usuários e Autenticação)
+Responsável por Identidade, Segurança e Localização do consumidor.
+- **Domínio:** `User` e `Address`. Usa Value Objects de `CPF` e `Email`.
+- **Autenticação:** Possui JWT nativo do NestJS (`@nestjs/jwt`) com estratégias do Passport. A encriptação de senha é feita injetando a Port `HashProviderPort` cuja implementação concreta vive na infraestrutura (`BcryptHashProvider`).
+- **Lógica:** Gerencia perfis. Possui métodos de login, onde retorna o DTO contendo o token de sessão e `role` (`CUSTOMER`, `RESTAURANT`, `DELIVERY`).
 
-**Responsabilidade:** Cadastro, autenticação e gerenciamento de clientes da plataforma.
+### 🏪 3.2. Restaurants (Lojistas)
+Ecossistema focado no vendedor.
+- **Domínio:** `Restaurant` e `Coupon`. Usa o VO `CNPJ`.
+- **Cupons:** Gerencia cupons transacionais. Um cupom possui `limit` (limite global de uso), `expiresAt` (data limite), `min` (compra mínima), e `type` (percentual ou fixo).
 
-**Value Objects de Domínio:**
-- **`CPF`** — Valida o algoritmo real dos dígitos verificadores brasileiros. Armazena 11 dígitos e formata com `getFormatted()` → `"123.456.789-09"`
-- **`Email`** — Garante formato de e-mail válido
-- **`Password`** — Encapsula a senha com suporte a hash (Bcrypt)
-- **`Phone`** — Valida 11 dígitos e fornece `getLastFourDigits()` para o código de verificação de entrega
+### 📦 3.3. Catalog (Catálogo)
+Vitrine de vendas do restaurante.
+- **Domínio:** `Product`.
+- **Regras:** Controla o `stock` (estoque físico) e a flag `available` (se o restaurante desativou o produto temporariamente, por exemplo, o pão acabou).
 
-**Como se conecta com outros contextos:**
-- Fornece `userId` para os contextos de `Orders` e `Delivery`
-- Endereços do usuário têm `lat/lng` para o Google Maps calcular fretes
-- Os últimos 4 dígitos do `phone` são copiados para `orders.deliveryVerificationCode` no ato da compra
+### 🛵 3.4. Orders (O Coração da Aplicação)
+Integra Usuários, Catálogo e Restaurantes. **Foi arquitetado para impedir fraudes.**
 
----
+#### A. Trava Antifraude na Criação
+No `POST /orders`, a camada de Facade não confia no carrinho vindo do app.
+1. Percorre o array de produtos da requisição.
+2. Faz query no Banco do `Catalog` pelo `productId`.
+3. **Validação de Estoque:** `if (product.stock < requestedQuantity)` -> Lança Erro.
+4. **Validação de Preço:** Substitui forçadamente o preço do JSON pelo `product.price` do banco para evitar "inspecionar elemento".
+5. **Dedução Atômica:** Executa `product.stock -= quantity` salvando no ato.
 
-### 2. 🏪 `restaurants/` — Restaurantes e Estabelecimentos
+#### B. Mecânica de Aplicação de Cupons
+Se o DTO trouxer `couponCode`:
+- Busca no banco e realiza um pipeline de Ifs: Está ativo? Pertence ao restaurante? Expirou? Atingiu o teto de usos? O subtotal da comida atinge o valor mínimo?
+- Só então calcula o `discount` e debita da variável `total`, gravando ambos separadamente no Banco de Dados para auditoria. Ao final, executa `coupon.uses += 1`.
 
-**Responsabilidade:** Cadastro e gerenciamento dos restaurantes parceiros.
+#### C. Snapshot de Pedido (Pattern de Imutabilidade)
+O TypeORM não faz um mero `@ManyToOne` entre Pedido e Cliente no momento do faturamento. O código **Copia (Snapshot)** os valores atuais do `CustomerName`, `CustomerPhone` e o `DeliveryAddress` inteiro e salva nas colunas de texto da tabela `Orders`.
+- **Motivo Técnico:** Se um cliente trocar de nome ou deletar o endereço 1 ano depois, o recibo do pedido continuará imaculado com os dados daquele momento exato.
 
-**Value Objects de Domínio:**
-- **`CNPJ`** — Valida o formato do CNPJ brasileiro com regex
-
-**Como se conecta:**
-- Fornece `restaurantId` para `Catalog` (produtos) e `Orders` (pedidos)
-- Endereços têm `lat/lng` que são usados para calcular a distância até o cliente via Google Maps Routes API
-
----
-
-### 3. 📋 `catalog/` — Catálogo de Produtos
-
-**Responsabilidade:** Gerenciar o cardápio (produtos) de cada restaurante.
-
-**Como se conecta:**
-- Armazena `restaurantId` como referência isolada (sem FK no TypeORM)
-- Quando um pedido é feito, `Orders` faz uma **cópia imutável** do `name` e `price` do produto. Isso garante que se o restaurante alterar o preço amanhã, o pedido de hoje não muda!
-
----
-
-### 4. 🛵 `orders/` — Pedidos
-
-**Responsabilidade:** O núcleo do negócio. Registra os pedidos dos clientes.
-
-**Ciclo de vida de um pedido:**
-```
-AWAITING_PAYMENT → (webhook aprovado) → PREPARING → (restaurante pronto) → DISPATCHED → DELIVERED
-```
-
-**Como se conecta:**
-- Usa `userId` (de Users) e `restaurantId` (de Restaurants) como referências isoladas
-- Exporta `ORDER_REPOSITORY_PORT` para o contexto de `Payments` atualizar o status via webhook
-- Armazena `deliveryVerificationCode` (4 últimos dígitos do telefone no ato da compra)
+#### D. Estorno e Cancelamento (`PATCH /orders/:id/cancel`)
+Bloqueia tentativas caso a comida já tenha saído (`IN_TRANSIT`). Se cancelado, aciona o fluxo inverso: mapeia os itens do pedido, vai na tabela de `Products` e devolve a quantidade para o estoque (`product.stock += quantity`).
 
 ---
 
-### 5. 📦 `delivery/` — Entregas e Entregadores
+## 🔒 4. O Módulo Compartilhado (`/shared`)
 
-**Responsabilidade:** Controlar as entregas e os entregadores.
+Tudo que é transversal à aplicação, ou seja, que pode ser usado por vários módulos, reside aqui.
 
-**Dados geográficos:**
-- `destLat` / `destLng` — Coordenadas do destino (preenchidas via Google Maps Geocoding)
-- `distanceMeters` — Distância da rota calculada pelo Google Maps Routes API
-- `estimatedDurationSeconds` — Tempo estimado de entrega em segundos
-
-**Como se conecta:**
-- Referencia `orderId` para saber qual pedido está sendo entregue
-- Usa o `TrackingGateway` (de Communications) para enviar localização em tempo real via WebSocket
+- **Decorators (`@CurrentUser`):** Um Parameter Decorator avançado do NestJS. Ele intercepta o objeto HTTP Request criado pelo JWT Guard e extrai metadados da sessão (ex: `@CurrentUser('userId')`). Isso limpa os Controllers, evitando boilerplate de `req.user`.
+- **TypeORM Configuration:** Configurações de conexão baseadas no `DataSource` para garantir que CLI e App bebam da mesma fonte.
+- **Migrations:** Controle de versão do esquema de dados. Como o `synchronize` é `false` (padrão de empresa), qualquer alteração no `@Column()` das entidades exige a geração de um arquivo de migração para rastreabilidade de DDL (Data Definition Language).
 
 ---
 
-### 6. 📡 `communications/` — Comunicação em Tempo Real
+## 🛵 5. Máquina de Estados de Entrega (PIN Security)
 
-**Responsabilidade:** Gerenciar a comunicação em tempo real entre cliente, restaurante e entregador.
+O sistema lida com o ciclo de vida da logística usando um controle de transição de estado rígido aliado a senhas transacionais.
 
-**Implementação:** Socket.IO via `@nestjs/websockets`
-
-**Salas (Rooms):** `order_{orderId}` — Todos os participantes de um pedido ficam na mesma sala isolada.
-
-**Eventos disponíveis:**
-| Evento | Direção | Descrição |
-|:---|:---|:---|
-| `joinOrderRoom` | Client → Server | Entrar na sala do pedido |
-| `sendLocation` | Entregador → Server | Enviar GPS atual |
-| `locationUpdate` | Server → Sala | Repassar GPS para todos na sala |
-| `sendChatMessage` | Qualquer → Server | Enviar mensagem de chat |
-| `chatMessage` | Server → Sala | Repassar mensagem para todos na sala |
-| `paymentApproved` | Server → Sala | Notificar aprovação do pagamento |
-
-**Como se conecta:**
-- `TrackingGateway` é exportado para o contexto de `Payments` disparar eventos quando o pagamento é aprovado
+**Fluxograma:**
+1. `PENDING` -> Criado, aguardando validações financeiras.
+2. `PREPARING` -> Restaurante visualiza e clica em preparar.
+3. `READY_FOR_PICKUP` -> Dispara no Radar do Entregador. Apenas entregadores ociosos veem.
+4. Entregador aceita (`PATCH /orders/:id/accept`) -> A API atrela o `courierId` e some do radar dos demais motoboys.
+5. `IN_TRANSIT` -> Exige verificação dupla. O Restaurante passa o **Pickup PIN** (4 dígitos gerados na criação da ordem) para o Entregador digitar no app. Isso formaliza a passagem de posse do pacote e evita roubos.
+6. `DELIVERED` -> Exige o **Delivery PIN**. O Cliente dita os dígitos finais para o Entregador, carimbando o recebimento oficial.
 
 ---
 
-### 7. 💸 `payments/` — Pagamentos com Mercado Pago
+## 📚 6. Ferramental e Scripts
 
-**Responsabilidade:** Integrar com o Mercado Pago para geração de cobranças e processamento de webhooks.
-
-**Fluxo completo:**
-1. `POST /payments/checkout` → Gera Pix (código copia-e-cola + QR Code Base64)
-2. Cliente paga pelo app do banco
-3. Mercado Pago envia webhook para `POST /payments/webhook`
-4. `ProcessWebhookUseCase` valida com a API do Mercado Pago (evita fraude)
-5. Se aprovado: atualiza `PaymentSchema.status = APPROVED`, `OrderSchema.status = PREPARING`
-6. Dispara evento WebSocket `paymentApproved` no canal `order_{id}`
-
-**Modo Simulado:** Sem `MERCADOPAGO_ACCESS_TOKEN` no `.env`, o sistema gera dados fictícios automaticamente para desenvolvimento.
-
----
-
-## 📁 A Pasta `shared/` — Por que ela existe?
-
-A pasta `shared` resolve um problema clássico de projetos modulares: **"Onde coloco código que qualquer módulo pode precisar usar?"**
-
-Em DDD, cada contexto (bounded context) deve ser autossuficiente. Mas alguns serviços de infraestrutura são genuinamente transversais — como um serviço de geolocalização que tanto o contexto de `Users` quanto o de `Restaurants` pode precisar usar.
-
-```
-shared/
-├── shared.module.ts          # Módulo NestJS que exporta os serviços compartilhados
-├── ports/
-│   └── geo-coding.port.ts    # CONTRATO: define o que um serviço de geo deve fazer
-├── adapters/
-│   └── google-maps.adapter.ts # IMPLEMENTAÇÃO: usa Google Maps para cumprir o contrato
-├── config/
-│   └── env.validation.ts     # Valida variáveis de ambiente obrigatórias no startup
-└── typeorm/
-    └── config/orm.config.ts  # Configuração centralizada do banco de dados
-```
-
-**A chave da boa arquitetura aqui:** o `shared` não "sabe" quem vai usá-lo. Ele expõe **interfaces (Ports)** e **implementações (Adapters)**, seguindo o mesmo padrão de Clean Architecture usado nos contextos.
-
-> ⚠️ **O que NÃO deve ir em `shared`:** Regras de negócio específicas de um contexto (ex: "a lógica de validar o CPF de um usuário") devem ficar dentro do próprio contexto `users/domain/`.
-
----
-
-## 🗺️ Como os Contextos se Conectam
-
-```mermaid
-graph TD
-    Users["👤 Users\n(CPF, Phone, Endereço)"]
-    Restaurants["🏪 Restaurants\n(CNPJ, Endereço)"]
-    Catalog["📋 Catalog\n(Produtos)"]
-    Orders["🛵 Orders\n(Pedidos)"]
-    Delivery["📦 Delivery\n(Entregadores)"]
-    Communications["📡 Communications\n(WebSocket)"]
-    Payments["💸 Payments\n(Mercado Pago)"]
-    Shared["🔧 Shared\n(Google Maps)"]
-
-    Users -->|userId| Orders
-    Restaurants -->|restaurantId| Catalog
-    Restaurants -->|restaurantId| Orders
-    Orders -->|orderId| Delivery
-    Orders -->|ORDER_REPOSITORY_PORT| Payments
-    Payments -->|paymentApproved WS event| Communications
-    Delivery -->|sendLocation WS event| Communications
-    Shared -->|GEO_CODING_PORT| Users
-    Shared -->|GEO_CODING_PORT| Restaurants
-```
-
-> **Importante:** As setas indicam **referência por ID**, nunca por chave estrangeira TypeORM (`@ManyToOne`) cruzando módulos. O banco de dados desconhece esses relacionamentos — eles existem apenas na lógica da aplicação.
-
----
-
-## 🔐 Segurança e Variáveis de Ambiente
-
-### Configuração do `.env`
-
-Crie um arquivo `.env` na raiz do projeto (baseado no `.env.example`):
-
-```env
-# Servidor
-PORT=3000
-NODE_ENV=development
-
-# Banco de Dados
-DB_HOST=localhost
-DB_PORT=5432
-DB_USERNAME=postgres
-DB_PASSWORD=postgres
-DB_DATABASE=food_db
-
-# Mercado Pago — https://www.mercadopago.com.br/developers
-MERCADOPAGO_ACCESS_TOKEN=seu_token_aqui
-
-# Google Maps — https://console.cloud.google.com/apis/credentials
-# Ative: Geocoding API + Routes API (ou Directions API)
-GOOGLE_MAPS_API_KEY=sua_chave_aqui
-```
-
-> **Nunca** versione o arquivo `.env` no git! O `.env.example` já está configurado e é seguro versionar.
-
-### Modos Simulados (Fallback)
-
-O sistema tem **fallback automático** para desenvolvimento sem chaves reais:
-
-| Serviço | Com chave | Sem chave |
-|:---|:---|:---|
-| Mercado Pago | Cobranças Pix reais | Mock: gera dados fictícios |
-| Google Maps | Geocoding real + Rotas reais | Mock: coordenadas aleatórias próximas a SP |
-
----
-
-## 🚀 Como Rodar Localmente
-
-### Pré-requisitos
-- Node.js 18+
-- PostgreSQL 14+
-- Git
-
-### Passo a passo
-
+**1. Dependências Base**
 ```bash
-# 1. Clone o repositório
-git clone <url-do-repo>
-cd app_food_backend
-
-# 2. Instale as dependências
 npm install
-
-# 3. Configure o ambiente
-cp .env.example .env
-# Edite o .env com seus dados do banco e chaves de API
-
-# 4. Crie o banco de dados no PostgreSQL
-# O TypeORM com synchronize:true criará as tabelas automaticamente em desenvolvimento
-
-# 5. Rode em modo de desenvolvimento
-npm run start:dev
-
-# O servidor estará disponível em: http://localhost:3000
 ```
 
----
+**2. Ambiente Local (Desenvolvimento)**
+```bash
+# Inicia a API na porta 3000 escutando mudanças nos arquivos TS
+npm run start:dev
+```
 
-## 📡 Rotas HTTP Disponíveis
+**3. Migrations (Controle de Banco)**
+```bash
+# Lê as Entidades TypeORM vs Banco e cria um arquivo .ts com os comandos ALTER TABLE
+npm run migration:generate --name=AddNovaColuna
 
-### 👤 Users
-| Método | Rota | Descrição |
-|:---:|:---|:---|
-| `POST` | `/users` | Cadastrar novo usuário (requer CPF) |
-| `GET` | `/users` | Listar todos os usuários |
-| `GET` | `/users/:id` | Buscar usuário por ID |
-| `PATCH` | `/users/:id` | Atualizar dados do usuário |
-| `DELETE` | `/users/:id` | Remover usuário |
-| `POST` | `/auth/login` | Autenticar (retorna token JWT) |
+# Aplica no banco de dados (equivalente a Commitar as mudanças)
+npm run migration:run
+```
 
-### 🏪 Restaurants
-| Método | Rota | Descrição |
-|:---:|:---|:---|
-| `POST` | `/restaurants` | Cadastrar restaurante (CNPJ obrigatório) |
-| `GET` | `/restaurants` | Listar restaurantes |
-| `PATCH` | `/restaurants/:id` | Atualizar restaurante |
-| `DELETE` | `/restaurants/:id` | Remover restaurante |
-| `PATCH` | `/restaurants/:id/status` | Alternar status do restaurante (Aberto/Fechado) |
-| `POST` | `/coupons` | Cadastrar novo cupom de desconto (Restaurant Context) |
-| `GET` | `/coupons` | Listar cupons de um restaurante |
+**4. Build de Produção**
+```bash
+# Compila tudo para /dist ignorando arquivos de teste e types
+npm run build
+```
 
-### 📋 Catalog
-| Método | Rota | Descrição |
-|:---:|:---|:---|
-| `POST` | `/products` | Criar produto no catálogo |
-| `GET` | `/products` | Listar produtos |
-| `PATCH` | `/products/:id` | Atualizar produto |
-| `DELETE` | `/products/:id` | Remover produto |
-
-### 🛵 Orders
-| Método | Rota | Descrição |
-|:---:|:---|:---|
-| `POST` | `/orders` | Criar pedido |
-| `GET` | `/orders` | Listar pedidos |
-| `GET` | `/orders/:id` | Buscar pedido |
-
-### 💸 Payments
-| Método | Rota | Descrição |
-|:---:|:---|:---|
-| `POST` | `/payments/checkout` | Gerar cobrança Pix para um pedido |
-| `POST` | `/payments/webhook` | Receber notificação do Mercado Pago |
-
-### 📦 Delivery (Couriers)
-| Método | Rota | Descrição |
-|:---:|:---|:---|
-| `PATCH` | `/couriers/me/status` | Alternar status online/offline do entregador |
-
-### 📡 WebSocket (Socket.IO)
-| Evento | Tipo | Descrição |
-|:---|:---:|:---|
-| `joinOrderRoom` | Emit | Entrar na sala do pedido |
-| `sendLocation` | Emit | Enviar localização GPS |
-| `sendChatMessage` | Emit | Enviar mensagem de chat |
-| `locationUpdate` | Listen | Receber atualização de GPS |
-| `chatMessage` | Listen | Receber mensagem de chat |
-| `paymentApproved` | Listen | Pagamento aprovado — pedido em preparo |
-
----
-
-## 🛠️ Atualizações Recentes (Integração Frontend/Backend)
-
-- **Endereços e Geocoding (Google Maps)**: Funcionalidade de endereços criada. Ao criar um endereço de Cliente ou Restaurante, o sistema consome a API do Google Maps assincronamente e popula a `latitude` e `longitude` do banco automaticamente.
-- **Testes E2E (E to E)**: Testes automatizados criados em `test/catalog.e2e-spec.ts`, `test/locations.e2e-spec.ts` e `test/payments.e2e-spec.ts`. Validação completa do banco de dados na persistência dos itens e geocoding.
-- **Swagger Interativo**: A documentação foi enriquecida com o Decorador `@ApiProperty()` nos DTOs para exemplos de payloads. Também foi configurada autenticação JWT global no Swagger via `.addBearerAuth()`.
-
----
-
-## 🚦 Testando o Fluxo Completo no Swagger
-
-1. **Acessando o Swagger**: Com o servidor rodando (`npm run start:dev`), acesse `http://localhost:3000/api/docs`.
-2. **Criando a Loja**: Chame `POST /restaurants` passando CNPJ e Nome. Memorize o ID.
-3. **Criando Produto**: Chame `POST /products` informando o ID da loja e o preço.
-4. **Registrando Usuário**: Chame `POST /users/register` com nome, email, senha e CPF.
-5. **Autenticação**:
-   - Chame `POST /users/login` usando as credenciais do usuário.
-   - O backend retornará um `access_token` (JWT).
-   - Copie esse token. No topo do Swagger, clique no botão verde **Authorize**.
-   - Cole o token e clique em Autenticar. Agora o cadeadinho aparecerá fechado, significando que o Swagger enviará esse token em todas as suas requisições seguras!
-6. **Cadastrando Endereços**: Como você está autenticado, chame `POST /users/me/addresses` (ou `POST /restaurants/:id/addresses`). O backend salvará a rua, processará a lat/lng via Google Maps silenciosamente por debaixo dos panos, e o dado estará no DB.
-7. **Criando o Pedido**: Chame `POST /orders`, informando o restaurante, o endereço de entrega, e o produto que você criou.
-8. **Gerando Pix e Pagando**: Chame `POST /payments/checkout` informando o ID do pedido. Em seguida, acione o `POST /payments/webhook` enviando o TransactionId no body para simular a resposta do Mercado Pago.
-9. **Mágica**: O pedido mudará para *PREPARING* e os websockets serão notificados!
-
----
-
----
-
-## 🧠 Decisões de Arquitetura
-
-### Por que DDD?
-As regras do negócio (como: "CPF deve ser válido", "O preço do pedido deve ser imutável", "Apenas pedidos em AWAITING_PAYMENT podem ser pagos") vivem na camada `domain`, completamente independente de banco de dados, frameworks ou APIs externas. Isso torna o sistema testável, evolutivo e fácil de entender.
-
-### Por que sem UUID?
-IDs numéricos auto-incremento são mais simples, performáticos em queries e mais fáceis de usar em ferramentas de desenvolvimento (como o Postman). Em um sistema de delivery, a legibilidade do ID (`Pedido #1024`) é mais importante que sua opacidade.
-
-### Por que sem `@ManyToOne` cruzando módulos?
-Chaves estrangeiras cruzando contextos criam acoplamento no banco de dados. Se o módulo `Orders` tiver uma FK apontando para a tabela `users`, você não pode mover esses módulos para microsserviços separados no futuro, nem escalar o banco de forma independente. Ao usar apenas IDs numéricos, os contextos permanecem verdadeiramente independentes.
-
-### Por que Ports & Adapters para Mercado Pago e Google Maps?
-Se amanhã você decidir trocar o Mercado Pago pela Stone, ou o Google Maps pelo Mapbox, você só precisa criar um novo Adapter. Os seus Use Cases, Entidades e Controllers continuam sem nenhuma alteração.
+**5. Swagger Docs**
+Acesse `http://localhost:3000/api` para ler as anotações completas de cada endpoint, testar proteções Bearer Token e debugar respostas de DTOs via Open API.

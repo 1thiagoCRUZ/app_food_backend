@@ -41,7 +41,8 @@ export class AuthenticateUserUseCase {
         id: user.getId(),
         name: user.getName(),
         email: user.getEmail().getValue(),
-        role: user.getRole()
+        role: user.getRole(),
+        photo: user.getPhoto()
       }
     };
   }

@@ -27,6 +27,9 @@ export class OrderRepository implements OrderRepositoryPort {
       deliveryState: schema.deliveryState || undefined,
       deliveryZipCode: schema.deliveryZipCode || undefined,
       paymentMethod: schema.paymentMethod as any || undefined,
+      subtotal: Number(schema.subtotal),
+      discount: schema.discount ? Number(schema.discount) : undefined,
+      couponCode: schema.couponCode || undefined,
       total: Number(schema.total),
       status: schema.status as any,
       deliveryVerificationCode: schema.deliveryVerificationCode || undefined,
@@ -56,6 +59,9 @@ export class OrderRepository implements OrderRepositoryPort {
     schema.deliveryState = order.getDeliveryState() || undefined;
     schema.deliveryZipCode = order.getDeliveryZipCode() || undefined;
     schema.paymentMethod = order.getPaymentMethod() || undefined;
+    schema.subtotal = order.getSubtotal();
+    schema.discount = order.getDiscount() || undefined;
+    schema.couponCode = order.getCouponCode() || undefined;
     schema.total = order.getTotal();
     schema.status = order.getStatus();
     schema.deliveryVerificationCode = order.getDeliveryVerificationCode() || undefined;

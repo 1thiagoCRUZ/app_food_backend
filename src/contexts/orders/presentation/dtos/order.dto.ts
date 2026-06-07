@@ -1,4 +1,4 @@
-import { IsNumber, IsArray, ValidateNested, IsString, IsNotEmpty } from 'class-validator';
+import { IsNumber, IsArray, ValidateNested, IsString, IsNotEmpty, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -34,6 +34,11 @@ export class CreateOrderDto {
   @IsNumber()
   @IsNotEmpty()
   deliveryAddressId: number;
+
+  @ApiProperty({ example: 'PRIMEIRA_COMPRA', description: 'Código do cupom de desconto (opcional)', required: false })
+  @IsString()
+  @IsOptional()
+  couponCode?: string;
 
   @ApiProperty({ type: [OrderItemDto], description: 'Lista de itens do pedido' })
   @IsArray()

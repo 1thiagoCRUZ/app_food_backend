@@ -19,8 +19,11 @@ export interface OrderProps {
     deliveryZipCode?: string;
     paymentMethod?: 'PIX' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'VR';
     items: OrderItemProps[];
+    subtotal: number;
+    discount?: number;
+    couponCode?: string;
     total: number;
-    status: 'PENDING' | 'AWAITING_PAYMENT' | 'PREPARING' | 'READY_FOR_PICKUP' | 'IN_TRANSIT' | 'DELIVERED';
+    status: 'PENDING' | 'AWAITING_PAYMENT' | 'PREPARING' | 'READY_FOR_PICKUP' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
     deliveryVerificationCode?: string;
     pickupVerificationCode?: string;
 }
@@ -39,8 +42,11 @@ export class Order {
     private deliveryZipCode?: string;
     private paymentMethod?: 'PIX' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'VR';
     private items: OrderItemProps[];
+    private subtotal: number;
+    private discount?: number;
+    private couponCode?: string;
     private total: number;
-    private status: 'PENDING' | 'AWAITING_PAYMENT' | 'PREPARING' | 'READY_FOR_PICKUP' | 'IN_TRANSIT' | 'DELIVERED';
+    private status: 'PENDING' | 'AWAITING_PAYMENT' | 'PREPARING' | 'READY_FOR_PICKUP' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
     private deliveryVerificationCode?: string;
     private pickupVerificationCode?: string;
 
@@ -58,6 +64,9 @@ export class Order {
         this.deliveryZipCode = props.deliveryZipCode;
         this.paymentMethod = props.paymentMethod;
         this.items = props.items;
+        this.subtotal = props.subtotal;
+        this.discount = props.discount;
+        this.couponCode = props.couponCode;
         this.total = props.total;
         this.status = props.status;
         this.deliveryVerificationCode = props.deliveryVerificationCode;
@@ -81,6 +90,9 @@ export class Order {
     public getDeliveryZipCode(): string | undefined { return this.deliveryZipCode; }
     public getPaymentMethod(): string | undefined { return this.paymentMethod; }
     public getItems(): OrderItemProps[] { return this.items; }
+    public getSubtotal(): number { return this.subtotal; }
+    public getDiscount(): number | undefined { return this.discount; }
+    public getCouponCode(): string | undefined { return this.couponCode; }
     public getTotal(): number { return this.total; }
     public getStatus(): string { return this.status; }
     public getDeliveryVerificationCode(): string | undefined { return this.deliveryVerificationCode; }

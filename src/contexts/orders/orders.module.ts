@@ -17,10 +17,12 @@ import { DeliverOrderUseCase } from './application/use-cases/deliver-order.use-c
 
 import { UserSchema } from '../users/infrastructure/database/user.schema';
 import { AdressSchema } from '../users/infrastructure/database/address.schema';
+import { CouponSchema } from '../restaurants/infrastructure/database/coupon.schema';
+import { ProductSchema } from '../catalog/infrastructure/database/product.schema';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([OrderSchema, OrderItemSchema, UserSchema, AdressSchema]),
+    TypeOrmModule.forFeature([OrderSchema, OrderItemSchema, UserSchema, AdressSchema, CouponSchema, ProductSchema]),
     RestaurantModule
   ],
   controllers: [OrderController],
