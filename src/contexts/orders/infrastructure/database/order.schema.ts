@@ -6,6 +6,13 @@ export class OrderSchema {
   id: number;
   @Column()
   userId: number; 
+
+  @Column({ nullable: true })
+  customerName?: string;
+
+  @Column({ nullable: true })
+  customerPhone?: string;
+
   @Column()
   restaurantId: number; 
 
@@ -17,6 +24,22 @@ export class OrderSchema {
 
   @Column({ nullable: true })
   deliveryAddressId: number; 
+
+  @Column({ nullable: true })
+  deliveryStreet?: string;
+
+  @Column({ nullable: true })
+  deliveryCity?: string;
+
+  @Column({ nullable: true })
+  deliveryState?: string;
+
+  @Column({ nullable: true })
+  deliveryZipCode?: string;
+
+  @Column({ nullable: true })
+  paymentMethod?: string;
+
   @OneToMany(() => OrderItemSchema, item => item.order, { cascade: true })
   items: OrderItemSchema[];
   @Column('decimal', { precision: 10, scale: 2 })

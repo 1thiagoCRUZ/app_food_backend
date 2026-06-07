@@ -40,4 +40,9 @@ export class CreateOrderDto {
   @ValidateNested({ each: true })
   @Type(() => OrderItemDto)
   items: OrderItemDto[];
+
+  @ApiProperty({ example: 'PIX', enum: ['PIX', 'CREDIT_CARD', 'DEBIT_CARD', 'VR'], description: 'Forma de pagamento escolhida' })
+  @IsString()
+  @IsNotEmpty()
+  paymentMethod: 'PIX' | 'CREDIT_CARD' | 'DEBIT_CARD' | 'VR';
 }

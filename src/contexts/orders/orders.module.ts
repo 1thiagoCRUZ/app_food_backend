@@ -15,9 +15,12 @@ import { AcceptOrderUseCase } from './application/use-cases/accept-order.use-cas
 import { PickupOrderUseCase } from './application/use-cases/pickup-order.use-case';
 import { DeliverOrderUseCase } from './application/use-cases/deliver-order.use-case';
 
+import { UserSchema } from '../users/infrastructure/database/user.schema';
+import { AdressSchema } from '../users/infrastructure/database/address.schema';
+
 @Module({
   imports: [
-    TypeOrmModule.forFeature([OrderSchema, OrderItemSchema]),
+    TypeOrmModule.forFeature([OrderSchema, OrderItemSchema, UserSchema, AdressSchema]),
     RestaurantModule
   ],
   controllers: [OrderController],

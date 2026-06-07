@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderSchema } from '../infrastructure/database/order.schema';
 import { OrderItemSchema } from '../infrastructure/database/order-item.schema';
+import { UserSchema } from '../../users/infrastructure/database/user.schema';
+import { AdressSchema } from '../../users/infrastructure/database/address.schema';
 import { CreateOrderDto } from '../presentation/dtos/order.dto';
 import { RESTAURANT_REPOSITORY_PORT, type RestaurantRepositoryPort } from '../../restaurants/application/ports/restaurant-repository.port';
 
@@ -20,6 +22,10 @@ export class OrderFacade {
     private readonly orderRepository: Repository<OrderSchema>,
     @Inject(RESTAURANT_REPOSITORY_PORT)
     private readonly restaurantRepository: RestaurantRepositoryPort,
+    @InjectRepository(UserSchema)
+    private readonly userRepository: Repository<UserSchema>,
+    @InjectRepository(AdressSchema)
+    private readonly addressRepository: Repository<AdressSchema>,
 
     private readonly setOrderReadyUseCase: SetOrderReadyUseCase,
     private readonly listAvailableOrdersUseCase: ListAvailableOrdersUseCase,
@@ -64,10 +70,23 @@ export class OrderFacade {
       orderItem.quantity = item.quantity;
       return orderItem;
     });
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) throw new NotFoundException('Usuário não encontrado');
+
+    const address = await this.addressRepository.findOne({ where: { id: dto.deliveryAddressId, userId } });
+    if (!address) throw new NotFoundException('Endereço de entrega não encontrado');
+
     const order = this.orderRepository.create({
       userId,
+      customerName: user.name,
+      customerPhone: user.phone || undefined,
       restaurantId: dto.restaurantId,
       deliveryAddressId: dto.deliveryAddressId,
+      deliveryStreet: address.street,
+      deliveryCity: address.city,
+      deliveryState: address.state,
+      deliveryZipCode: address.zipCode,
+      paymentMethod: dto.paymentMethod,
       total,
       courierFee: total * 0.20,
       items,

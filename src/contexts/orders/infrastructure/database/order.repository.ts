@@ -17,9 +17,16 @@ export class OrderRepository implements OrderRepositoryPort {
     return Order.create({
       id: schema.id,
       userId: schema.userId,
+      customerName: schema.customerName || undefined,
+      customerPhone: schema.customerPhone || undefined,
       restaurantId: schema.restaurantId,
       courierId: schema.courierId || undefined,
       courierFee: schema.courierFee ? Number(schema.courierFee) : undefined,
+      deliveryStreet: schema.deliveryStreet || undefined,
+      deliveryCity: schema.deliveryCity || undefined,
+      deliveryState: schema.deliveryState || undefined,
+      deliveryZipCode: schema.deliveryZipCode || undefined,
+      paymentMethod: schema.paymentMethod as any || undefined,
       total: Number(schema.total),
       status: schema.status as any,
       deliveryVerificationCode: schema.deliveryVerificationCode || undefined,
@@ -39,9 +46,16 @@ export class OrderRepository implements OrderRepositoryPort {
       schema.id = order.getId() as number;
     }
     schema.userId = order.getUserId();
+    schema.customerName = order.getCustomerName() || undefined;
+    schema.customerPhone = order.getCustomerPhone() || undefined;
     schema.restaurantId = order.getRestaurantId();
     schema.courierId = order.getCourierId() || undefined;
     schema.courierFee = order.getCourierFee() || undefined;
+    schema.deliveryStreet = order.getDeliveryStreet() || undefined;
+    schema.deliveryCity = order.getDeliveryCity() || undefined;
+    schema.deliveryState = order.getDeliveryState() || undefined;
+    schema.deliveryZipCode = order.getDeliveryZipCode() || undefined;
+    schema.paymentMethod = order.getPaymentMethod() || undefined;
     schema.total = order.getTotal();
     schema.status = order.getStatus();
     schema.deliveryVerificationCode = order.getDeliveryVerificationCode() || undefined;
