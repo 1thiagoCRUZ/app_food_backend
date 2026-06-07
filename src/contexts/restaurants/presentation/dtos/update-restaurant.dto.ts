@@ -15,4 +15,9 @@ export class UpdateRestaurantDto {
     @ApiProperty({ example: true, required: false })
     @IsBoolean()
     isOpen?: boolean;
+
+    @ApiProperty({ example: 'data:image/png;base64,iVBORw0KGgo...', required: false, description: 'Foto do restaurante em Base64' })
+    @IsString()
+    @IsOptional()
+    photo?: string;
 }

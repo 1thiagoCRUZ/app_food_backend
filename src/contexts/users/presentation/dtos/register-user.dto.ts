@@ -31,4 +31,14 @@ export class RegisterUserDto {
   @IsOptional()
   @Matches(/^\d{10,11}$/, { message: 'phone deve conter 10 ou 11 dígitos numéricos' })
   phone?: string;
+
+  @ApiProperty({ example: 'data:image/png;base64,iVBORw0KGgo...', required: false, description: 'Avatar do usuário em Base64' })
+  @IsString()
+  @IsOptional()
+  photo?: string;
+
+  @ApiProperty({ example: 'CUSTOMER', enum: ['CUSTOMER', 'RESTAURANT', 'DELIVERY'], required: false, description: 'Papel do usuário', default: 'CUSTOMER' })
+  @IsString()
+  @IsOptional()
+  role?: string;
 }

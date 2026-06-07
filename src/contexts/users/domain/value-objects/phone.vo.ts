@@ -16,7 +16,6 @@ export class Phone {
         return this.value.slice(-4);
     }
     private static isValid(phone: string): boolean {
-        // Remove all non-numeric characters
         const cleanPhone = phone.replace(/\D/g, '');
         return cleanPhone.length === 11;
     }

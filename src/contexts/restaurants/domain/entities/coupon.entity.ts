@@ -59,6 +59,14 @@ export class Coupon {
         this.isActive = false;
     }
 
+    public updateCode(code: string): void { this.code = code.toUpperCase(); }
+    public updateType(type: 'percent' | 'fixed' | 'shipping'): void { this.type = type; }
+    public updateValue(value: string): void { this.value = value; }
+    public updateMin(min: number): void { this.min = min; }
+    public updateLimit(limit: number): void { this.limit = limit; }
+    public updateIsActive(isActive: boolean): void { this.isActive = isActive; }
+    public updateExpiresAt(expiresAt: Date): void { this.expiresAt = expiresAt; }
+
     public isValid(): boolean {
         return this.isActive && new Date() <= this.expiresAt;
     }

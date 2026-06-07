@@ -1,3 +1,5 @@
+import { BadRequestException } from '@nestjs/common';
+
 export class CPF {
   private readonly value: string; 
   private constructor(value: string) {
@@ -6,17 +8,15 @@ export class CPF {
   public static create(rawCpf: string): CPF {
     const digits = rawCpf.replace(/\D/g, '');
     if (!CPF.isValid(digits)) {
-      throw new Error(
-        `CPF inválido: "${rawCpf}". Forneça um CPF válido no formato "12345678909" ou "123.456.789-09".`,
+      throw new BadRequestException(
+        `CPF inválido: "${rawCpf}". Forneça um CPF válido no formato "12345678909" ou "123.456.789-09".`
       );
     }
     return new CPF(digits);
   }
-  /** Retorna os 11 dígitos sem formatação — para persistência no banco. */
   public getValue(): string {
     return this.value;
   }
-  /** Retorna o CPF formatado com máscara: "123.456.789-09" */
   public getFormatted(): string {
     return this.value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
   }

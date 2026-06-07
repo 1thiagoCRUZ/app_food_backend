@@ -10,6 +10,7 @@ export interface UserProps {
   cpf?: CPF;
   phone?: string;
   role?: string;
+  photo?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -22,6 +23,7 @@ export class User {
   private cpf?: CPF;
   private phone?: string;
   private role: string;
+  private photo?: string;
   private createdAt: Date;
   private updatedAt: Date;
 
@@ -33,6 +35,7 @@ export class User {
     this.cpf = props.cpf;
     this.phone = props.phone;
     this.role = props.role || 'CUSTOMER';
+    this.photo = props.photo;
     this.createdAt = props.createdAt || new Date();
     this.updatedAt = props.updatedAt || new Date();
   }
@@ -69,6 +72,11 @@ export class User {
     this.updatedAt = new Date();
   }
 
+  public updatePhoto(photo: string): void {
+    this.photo = photo;
+    this.updatedAt = new Date();
+  }
+
   public getId(): number | undefined {
     return this.id;
   }
@@ -95,6 +103,10 @@ export class User {
 
   public getRole(): string {
     return this.role;
+  }
+
+  public getPhoto(): string | undefined {
+    return this.photo;
   }
 
   public getCreatedAt(): Date {

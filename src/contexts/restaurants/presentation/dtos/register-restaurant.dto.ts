@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsBoolean } from 'class-validator';
+import { IsString, IsNotEmpty, IsBoolean, IsOptional } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class RegisterRestaurantDto {
@@ -16,4 +16,9 @@ export class RegisterRestaurantDto {
   @IsBoolean()
   @IsNotEmpty()
   isOpen: boolean;
+
+  @ApiProperty({ example: 'data:image/png;base64,iVBORw0KGgo...', required: false, description: 'Foto do restaurante em Base64' })
+  @IsString()
+  @IsOptional()
+  photo?: string;
 }

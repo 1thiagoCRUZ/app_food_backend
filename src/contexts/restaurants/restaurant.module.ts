@@ -21,6 +21,8 @@ import { ListRestaurantUseCase } from './application/use-cases/list-restaurant.u
 import { ToggleRestaurantStatusUseCase } from './application/use-cases/toggle-restaurant-status.use-case';
 import { CreateCouponUseCase } from './application/use-cases/create-coupon.use-case';
 import { ListCouponUseCase } from './application/use-cases/list-coupon.use-case';
+import { UpdateCouponUseCase } from './application/use-cases/update-coupon.use-case';
+import { DeleteCouponUseCase } from './application/use-cases/delete-coupon.use-case';
 import { GetMyRestaurantUseCase } from './application/use-cases/get-my-restaurant.use-case';
 
 @Module({
@@ -45,10 +47,15 @@ import { GetMyRestaurantUseCase } from './application/use-cases/get-my-restauran
     ToggleRestaurantStatusUseCase,
     CreateCouponUseCase,
     ListCouponUseCase,
+    UpdateCouponUseCase,
+    DeleteCouponUseCase,
     GetMyRestaurantUseCase,
     AddRestaurantAddressUseCase,
     ListRestaurantAddressesUseCase
   ],
-  exports: [GeocodeRestaurantAddressUseCase]
+  exports: [
+    GeocodeRestaurantAddressUseCase,
+    RESTAURANT_REPOSITORY_PORT
+  ]
 })
 export class RestaurantModule {}

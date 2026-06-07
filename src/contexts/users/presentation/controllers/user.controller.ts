@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Put, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Get, Put, Param, Delete, HttpCode, HttpStatus, ForbiddenException } from '@nestjs/common';
 import { UserFacade } from '../../application/user.facade';
 import { RegisterUserDto } from '../dtos/register-user.dto';
 import { LoginDto } from '../dtos/login.dto';
@@ -36,9 +36,24 @@ export class UserController {
     return this.userFacade.list();
   }
 
+  @Get('me')
+  @UseGuards(JwtAuthGuard)
+  async getMe(@Request() req) {
+    return this.userFacade.getById(req.user.userId);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async getById(@Param('id') id: number) {
+    return this.userFacade.getById(id);
+  }
+
   @Put(':id')
   @UseGuards(JwtAuthGuard)
-  async update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto) {
+  async update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto, @Request() req) {
+    if (id != req.user.userId) {
+      throw new ForbiddenException('Você só pode editar sua própria conta');
+    }
     await this.userFacade.update(id, updateUserDto);
     return { message: 'User updated successfully' };
   }
@@ -46,7 +61,10 @@ export class UserController {
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   @UseGuards(JwtAuthGuard)
-  async delete(@Param('id') id: number) {
+  async delete(@Param('id') id: number, @Request() req) {
+    if (id != req.user.userId) {
+      throw new ForbiddenException('Você só pode excluir sua própria conta');
+    }
     await this.userFacade.delete(id);
   }
 

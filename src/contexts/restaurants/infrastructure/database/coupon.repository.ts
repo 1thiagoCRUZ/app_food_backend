@@ -13,6 +13,7 @@ export class CouponRepository {
 
   async save(coupon: Coupon): Promise<Coupon> {
     const schema = this.repository.create({
+      id: coupon.getId(),
       restaurantId: coupon.getRestaurantId(),
       code: coupon.getCode(),
       type: coupon.getType(),
@@ -57,5 +58,27 @@ export class CouponRepository {
       expiresAt: schema.expiresAt,
       createdAt: schema.createdAt,
     }));
+  }
+
+  async findById(id: number): Promise<Coupon | null> {
+    const schema = await this.repository.findOne({ where: { id } });
+    if (!schema) return null;
+    return Coupon.create({
+      id: schema.id,
+      restaurantId: schema.restaurantId,
+      code: schema.code,
+      type: schema.type as any,
+      value: schema.value,
+      min: schema.min,
+      uses: schema.uses,
+      limit: schema.limit,
+      isActive: schema.isActive,
+      expiresAt: schema.expiresAt,
+      createdAt: schema.createdAt,
+    });
+  }
+
+  async delete(id: number): Promise<void> {
+    await this.repository.delete(id);
   }
 }

@@ -29,6 +29,14 @@ export class UpdateUserUseCase {
       user.updatePhone(dto.phone);
     }
 
+    if (dto.photo) {
+      user.updatePhoto(dto.photo);
+    }
+
+    if (dto.role) {
+      user.updateRole(dto.role);
+    }
+
     await this.userRepository.save(user);
   }
 }

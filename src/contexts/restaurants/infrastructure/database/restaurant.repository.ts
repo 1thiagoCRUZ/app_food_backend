@@ -20,6 +20,7 @@ export class RestaurantRepository implements RestaurantRepositoryPort {
       cnpj: CNPJ.create(schema.cnpj),
       isOpen: schema.isOpen,
       ownerId: schema.ownerId,
+      photo: schema.photo,
       createdAt: schema.createdAt,
       updatedAt: schema.updatedAt,
     });
@@ -32,6 +33,7 @@ export class RestaurantRepository implements RestaurantRepositoryPort {
       cnpj: restaurant.getCNPJ().getValue(),
       isOpen: restaurant.getIsOpen(),
       ownerId: restaurant.getOwnerId(),
+      photo: restaurant.getPhoto(),
     });
     const saved = await this.repository.save(schema);
     return this.toDomain(saved);

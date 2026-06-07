@@ -37,6 +37,8 @@ export class RegisterUserUseCase {
       password: hashedPasswordField,
       cpf: cpfVo,
       phone: dto.phone,
+      photo: dto.photo,
+      role: dto.role,
     });
 
     return this.userRepository.save(user);

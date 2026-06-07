@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { OrderSchema } from './order.schema';
 import { OrderItemSchema } from './order-item.schema';
 import { OrderRepositoryPort } from '../../application/ports/order-repository.port';
@@ -18,6 +18,8 @@ export class OrderRepository implements OrderRepositoryPort {
       id: schema.id,
       userId: schema.userId,
       restaurantId: schema.restaurantId,
+      courierId: schema.courierId || undefined,
+      courierFee: schema.courierFee ? Number(schema.courierFee) : undefined,
       total: Number(schema.total),
       status: schema.status as any,
       deliveryVerificationCode: schema.deliveryVerificationCode || undefined,
@@ -38,6 +40,8 @@ export class OrderRepository implements OrderRepositoryPort {
     }
     schema.userId = order.getUserId();
     schema.restaurantId = order.getRestaurantId();
+    schema.courierId = order.getCourierId() || undefined;
+    schema.courierFee = order.getCourierFee() || undefined;
     schema.total = order.getTotal();
     schema.status = order.getStatus();
     schema.deliveryVerificationCode = order.getDeliveryVerificationCode() || undefined;
@@ -74,5 +78,22 @@ export class OrderRepository implements OrderRepositoryPort {
 
   async updateStatus(id: number, status: string): Promise<void> {
     await this.repository.update(id, { status });
+  }
+
+  async findAvailableOrders(): Promise<Order[]> {
+    const schemas = await this.repository.find({
+      where: { status: 'READY_FOR_PICKUP', courierId: IsNull() },
+      relations: ['items']
+    });
+    return schemas.map(s => this.toDomain(s));
+  }
+
+  async findCourierOrders(courierId: number): Promise<Order[]> {
+    const schemas = await this.repository.find({
+      where: { courierId },
+      relations: ['items'],
+      order: { createdAt: 'DESC' }
+    });
+    return schemas.map(s => this.toDomain(s));
   }
 }

@@ -6,9 +6,19 @@ import { OrderRepository } from './infrastructure/database/order.repository';
 import { ORDER_REPOSITORY_PORT } from './application/ports/order-repository.port';
 import { OrderFacade } from './application/order.facade';
 import { OrderController } from './presentation/controllers/order.controller';
+import { RestaurantModule } from '../restaurants/restaurant.module';
+
+import { SetOrderReadyUseCase } from './application/use-cases/set-order-ready.use-case';
+import { ListAvailableOrdersUseCase } from './application/use-cases/list-available-orders.use-case';
+import { ListCourierOrdersUseCase } from './application/use-cases/list-courier-orders.use-case';
+import { AcceptOrderUseCase } from './application/use-cases/accept-order.use-case';
+import { PickupOrderUseCase } from './application/use-cases/pickup-order.use-case';
+import { DeliverOrderUseCase } from './application/use-cases/deliver-order.use-case';
+
 @Module({
   imports: [
-    TypeOrmModule.forFeature([OrderSchema, OrderItemSchema])
+    TypeOrmModule.forFeature([OrderSchema, OrderItemSchema]),
+    RestaurantModule
   ],
   controllers: [OrderController],
   providers: [
@@ -16,6 +26,12 @@ import { OrderController } from './presentation/controllers/order.controller';
       provide: ORDER_REPOSITORY_PORT,
       useClass: OrderRepository,
     },
+    SetOrderReadyUseCase,
+    ListAvailableOrdersUseCase,
+    ListCourierOrdersUseCase,
+    AcceptOrderUseCase,
+    PickupOrderUseCase,
+    DeliverOrderUseCase,
     OrderFacade,
   ],
   exports: [

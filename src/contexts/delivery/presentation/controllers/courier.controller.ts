@@ -13,7 +13,6 @@ export class CourierController {
   @Patch('me/status')
   @HttpCode(HttpStatus.OK)
   async toggleStatus(@Request() req, @Body('isOnline') isOnline: boolean) {
-    // req.user is populated by JwtAuthGuard
     const userId = req.user.id;
     const courier = await this.courierFacade.toggleOnlineStatus(userId, isOnline);
     return {

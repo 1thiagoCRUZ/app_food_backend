@@ -7,6 +7,7 @@ export interface RestaurantProps {
     cnpj: CNPJ;
     isOpen: boolean;
     ownerId?: number;
+    photo?: string;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -17,6 +18,7 @@ export class Restaurant {
     private cnpj: CNPJ;
     private isOpen: boolean;
     private ownerId?: number;
+    private photo?: string;
     private createdAt: Date;
     private updatedAt: Date;
 
@@ -26,6 +28,7 @@ export class Restaurant {
         this.cnpj = props.cnpj;
         this.isOpen = props.isOpen;
         this.ownerId = props.ownerId;
+        this.photo = props.photo;
         this.createdAt = props.createdAt || new Date();
         this.updatedAt = props.updatedAt || new Date();
     }
@@ -52,6 +55,11 @@ export class Restaurant {
         this.updatedAt = new Date();
     }
 
+    public updatePhoto(photo: string): void {
+        this.photo = photo;
+        this.updatedAt = new Date();
+    }
+
     public getId(): number | undefined {
         return this.id;
     }
@@ -71,6 +79,10 @@ export class Restaurant {
 
     public getOwnerId(): number | undefined {
         return this.ownerId;
+    }
+
+    public getPhoto(): string | undefined {
+        return this.photo;
     }
 
     public getCreatedAt(): Date {

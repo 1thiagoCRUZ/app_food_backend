@@ -26,7 +26,6 @@ export class AddAddressUseCase {
     
     const savedAddress = await this.addressRepository.save(address);
     
-    // Dispara a geocodificação de forma assíncrona para não travar a requisição
     this.geocodeUserAddressUseCase.execute({ addressId: savedAddress.id }).catch(console.error);
 
     return savedAddress;

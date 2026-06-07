@@ -22,6 +22,9 @@ export class UpdateRestaurantUseCase {
         if (dto.isOpen) {
             restaurant.updateIsOpen(dto.isOpen);
         }
+        if (dto.photo) {
+            restaurant.updatePhoto(dto.photo);
+        }
 
         await this.restaurantRepository.save(restaurant);
     }

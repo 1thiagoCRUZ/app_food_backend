@@ -22,6 +22,9 @@ export class RestaurantSchema {
   @Column({ nullable: true })
   ownerId: number;
 
+  @Column({ type: 'text', nullable: true })
+  photo: string;
+
   @CreateDateColumn()
   createdAt: Date;
 

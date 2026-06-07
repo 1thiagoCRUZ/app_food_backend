@@ -4,9 +4,12 @@ import { ProductSchema } from './infrastructure/database/product.schema';
 import { CatalogFacade } from './application/catalog.facade';
 import { CatalogController } from './presentation/controllers/catalog.controller';
 
+import { RestaurantModule } from '../restaurants/restaurant.module';
+
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ProductSchema])
+    TypeOrmModule.forFeature([ProductSchema]),
+    RestaurantModule
   ],
   controllers: [CatalogController],
   providers: [CatalogFacade],

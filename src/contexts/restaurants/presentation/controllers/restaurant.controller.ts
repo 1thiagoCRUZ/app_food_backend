@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put, UseGuards, Request } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put, UseGuards, Request, ForbiddenException } from "@nestjs/common";
 import { RestaurantFacade } from "../../application/restaurant.facade";
 import { RegisterRestaurantDto } from "../dtos/register-restaurant.dto";
 import { UpdateRestaurantDto } from "../dtos/update-restaurant.dto";
@@ -25,7 +25,11 @@ export class RestaurantController {
 
     @Put(':id')
     @HttpCode(HttpStatus.OK)
-    async update(@Param('id') id: number, @Body() updateRestaurantDto: UpdateRestaurantDto) {
+    async update(@Param('id') id: number, @Body() updateRestaurantDto: UpdateRestaurantDto, @Request() req) {
+        const myRestaurant = await this.restaurantFacade.getMyRestaurant(req.user.userId || req.user.sub);
+        if (!myRestaurant || myRestaurant.id != id) {
+            throw new ForbiddenException('Você só pode editar seu próprio restaurante');
+        }
         await this.restaurantFacade.update(id, updateRestaurantDto);
         return {
             message: 'Restaurant updated successfully',
@@ -34,7 +38,11 @@ export class RestaurantController {
 
     @Delete(':id')
     @HttpCode(HttpStatus.NO_CONTENT)
-    async delete(@Param('id') id: number) {
+    async delete(@Param('id') id: number, @Request() req) {
+        const myRestaurant = await this.restaurantFacade.getMyRestaurant(req.user.userId || req.user.sub);
+        if (!myRestaurant || myRestaurant.id != id) {
+            throw new ForbiddenException('Você só pode excluir seu próprio restaurante');
+        }
         await this.restaurantFacade.delete(id);
     }
 
@@ -52,7 +60,11 @@ export class RestaurantController {
 
     @Patch(':id/status')
     @HttpCode(HttpStatus.OK)
-    async toggleStatus(@Param('id') id: number, @Body('isOpen') isOpen: boolean) {
+    async toggleStatus(@Param('id') id: number, @Body('isOpen') isOpen: boolean, @Request() req) {
+        const myRestaurant = await this.restaurantFacade.getMyRestaurant(req.user.userId || req.user.sub);
+        if (!myRestaurant || myRestaurant.id != id) {
+            throw new ForbiddenException('Você só pode alterar o status do seu próprio restaurante');
+        }
         await this.restaurantFacade.toggleStatus(id, isOpen);
         return {
             message: 'Restaurant status updated successfully',
@@ -61,7 +73,11 @@ export class RestaurantController {
 
     @Post(':id/addresses')
     @HttpCode(HttpStatus.CREATED)
-    async addAddress(@Param('id') id: number, @Body() createAddressDto: CreateRestaurantAddressDto) {
+    async addAddress(@Param('id') id: number, @Body() createAddressDto: CreateRestaurantAddressDto, @Request() req) {
+        const myRestaurant = await this.restaurantFacade.getMyRestaurant(req.user.userId || req.user.sub);
+        if (!myRestaurant || myRestaurant.id != id) {
+            throw new ForbiddenException('Você só pode adicionar endereço no seu próprio restaurante');
+        }
         return this.restaurantFacade.addAddress(id, createAddressDto);
     }
 

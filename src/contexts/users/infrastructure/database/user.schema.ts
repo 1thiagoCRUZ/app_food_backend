@@ -18,6 +18,8 @@ export class UserSchema {
   passwordHash: string;
   @Column({ default: 'CUSTOMER' })
   role: string;
+  @Column({ type: 'text', nullable: true })
+  photo?: string; 
   @CreateDateColumn()
   createdAt: Date;
   @UpdateDateColumn()

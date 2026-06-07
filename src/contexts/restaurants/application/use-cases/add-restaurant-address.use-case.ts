@@ -26,7 +26,6 @@ export class AddRestaurantAddressUseCase {
     
     const savedAddress = await this.addressRepository.save(address);
     
-    // Dispara a geocodificação de forma assíncrona
     this.geocodeRestaurantAddressUseCase.execute({ addressId: savedAddress.id }).catch(console.error);
 
     return savedAddress;

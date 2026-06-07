@@ -7,6 +7,7 @@ import { AuthenticateUserUseCase } from './application/use-cases/authenticate-us
 import { UpdateUserUseCase } from './application/use-cases/update-user.use-caso';
 import { DeleteUserUseCase } from './application/use-cases/delete-user.use-case';
 import { ListUserUseCase } from './application/use-cases/list-user.use-case';
+import { GetUserByIdUseCase } from './application/use-cases/get-user-by-id.use-case';
 import { GeocodeUserAddressUseCase } from './application/use-cases/geocode-user-address.usecase';
 import { AddAddressUseCase } from './application/use-cases/add-address.use-case';
 import { ListAddressesUseCase } from './application/use-cases/list-addresses.use-case';
@@ -43,6 +44,7 @@ import { JwtStrategy } from './infrastructure/auth/jwt.strategy';
     UpdateUserUseCase,
     DeleteUserUseCase,
     ListUserUseCase,
+    GetUserByIdUseCase,
     GeocodeUserAddressUseCase,
     AddAddressUseCase,
     ListAddressesUseCase,

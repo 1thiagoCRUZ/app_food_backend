@@ -20,6 +20,7 @@ export class RegisterRestaurantUseCase {
             name: dto.name,
             cnpj: CNPJ.create(dto.cnpj),
             isOpen: dto.isOpen,
+            photo: dto.photo,
         });
 
         return this.restaurantRepository.save(restaurant);

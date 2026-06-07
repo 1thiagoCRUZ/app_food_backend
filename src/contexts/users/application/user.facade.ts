@@ -4,6 +4,7 @@ import { AuthenticateUserUseCase } from './use-cases/authenticate-user.use-case'
 import { UpdateUserUseCase } from './use-cases/update-user.use-caso';
 import { DeleteUserUseCase } from './use-cases/delete-user.use-case';
 import { ListUserUseCase } from './use-cases/list-user.use-case';
+import { GetUserByIdUseCase } from './use-cases/get-user-by-id.use-case';
 import { RegisterUserDto } from '../presentation/dtos/register-user.dto';
 import { LoginDto } from '../presentation/dtos/login.dto';
 import { UpdateUserDto } from '../presentation/dtos/update-user.dto';
@@ -19,6 +20,7 @@ export class UserFacade {
     private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly deleteUserUseCase: DeleteUserUseCase,
     private readonly listUserUseCase: ListUserUseCase,
+    private readonly getUserByIdUseCase: GetUserByIdUseCase,
     private readonly addAddressUseCase: AddAddressUseCase,
     private readonly listAddressesUseCase: ListAddressesUseCase,
   ) {}
@@ -41,6 +43,10 @@ export class UserFacade {
 
   list() {
     return this.listUserUseCase.execute();
+  }
+
+  getById(id: number) {
+    return this.getUserByIdUseCase.execute(id);
   }
 
   addAddress(userId: number, dto: CreateAddressDto) {

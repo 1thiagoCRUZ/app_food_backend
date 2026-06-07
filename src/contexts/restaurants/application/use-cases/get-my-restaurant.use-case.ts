@@ -11,7 +11,6 @@ export class GetMyRestaurantUseCase {
 
     async execute(ownerId: number) {
         const restaurants = await this.restaurantRepository.findAll();
-        // TEMPORARY FIX: since we don't have findByOwnerId in repository port yet, filter here
         const myRestaurant = restaurants.find(r => (r as any).getOwnerId && (r as any).getOwnerId() === ownerId) || restaurants[0];
         
         return {

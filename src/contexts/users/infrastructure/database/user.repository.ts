@@ -24,6 +24,7 @@ export class UserRepository implements UserRepositoryPort {
       cpf: schema.cpf ? CPF.create(schema.cpf) : undefined,
       phone: schema.phone || undefined,
       role: schema.role,
+      photo: schema.photo,
       createdAt: schema.createdAt,
       updatedAt: schema.updatedAt,
     });
@@ -40,6 +41,7 @@ export class UserRepository implements UserRepositoryPort {
     schema.cpf = user.getCpf()?.getValue() || undefined;
     schema.phone = user.getPhone() || undefined;
     schema.role = user.getRole();
+    schema.photo = user.getPhoto() || undefined;
     schema.createdAt = user.getCreatedAt();
     schema.updatedAt = user.getUpdatedAt();
     return schema;

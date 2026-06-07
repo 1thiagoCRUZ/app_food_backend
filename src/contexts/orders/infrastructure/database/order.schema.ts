@@ -8,6 +8,13 @@ export class OrderSchema {
   userId: number; 
   @Column()
   restaurantId: number; 
+
+  @Column({ nullable: true })
+  courierId?: number; 
+
+  @Column('decimal', { precision: 10, scale: 2, nullable: true })
+  courierFee?: number;
+
   @Column({ nullable: true })
   deliveryAddressId: number; 
   @OneToMany(() => OrderItemSchema, item => item.order, { cascade: true })

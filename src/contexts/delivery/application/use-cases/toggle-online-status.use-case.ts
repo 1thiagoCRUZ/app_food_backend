@@ -10,7 +10,6 @@ export class ToggleOnlineStatusUseCase {
     let courier = await this.courierRepository.findByUserId(userId);
     
     if (!courier) {
-      // Create new courier profile if it doesn't exist
       courier = Courier.create({ userId, isOnline });
     } else {
       courier.toggleOnlineStatus(isOnline);
