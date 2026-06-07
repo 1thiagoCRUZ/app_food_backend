@@ -16,6 +16,8 @@ export class UserSchema {
   addresses: AdressSchema[];
   @Column()
   passwordHash: string;
+  @Column({ default: 'CUSTOMER' })
+  role: string;
   @CreateDateColumn()
   createdAt: Date;
   @UpdateDateColumn()

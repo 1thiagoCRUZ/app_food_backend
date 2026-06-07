@@ -19,6 +19,9 @@ export class RestaurantSchema {
   @OneToMany(() => AdressSchema, (address) => address.restaurant, { cascade: true })
   addresses: AdressSchema[];
 
+  @Column({ nullable: true })
+  ownerId: number;
+
   @CreateDateColumn()
   createdAt: Date;
 

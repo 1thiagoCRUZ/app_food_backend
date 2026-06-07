@@ -17,7 +17,7 @@ export class AuthenticateUserUseCase {
     private readonly jwtService: JwtService,
   ) { }
 
-  async execute(dto: LoginDto): Promise<{ token: string }> {
+  async execute(dto: LoginDto): Promise<{ token: string, user: any }> {
     const user = await this.userRepository.findByEmail(dto.email);
     if (!user) {
       throw new InvalidCredentialsException();
@@ -32,9 +32,17 @@ export class AuthenticateUserUseCase {
       throw new InvalidCredentialsException();
     }
 
-    const payload = { sub: user.getId(), email: user.getEmail().getValue() };
+    const payload = { sub: user.getId(), email: user.getEmail().getValue(), role: user.getRole() };
     const token = this.jwtService.sign(payload);
 
-    return { token };
+    return { 
+      token, 
+      user: {
+        id: user.getId(),
+        name: user.getName(),
+        email: user.getEmail().getValue(),
+        role: user.getRole()
+      }
+    };
   }
 }

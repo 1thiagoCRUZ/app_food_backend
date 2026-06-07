@@ -17,6 +17,9 @@ export class CatalogFacade {
       name: dto.name,
       description: dto.description || '',
       price: dto.price,
+      image: dto.image,
+      available: dto.available !== undefined ? dto.available : true,
+      stock: dto.stock !== undefined ? dto.stock : 0,
     });
     return this.productRepository.save(product);
   }
@@ -35,6 +38,9 @@ export class CatalogFacade {
     if (dto.name) product.name = dto.name;
     if (dto.description) product.description = dto.description;
     if (dto.price !== undefined) product.price = dto.price;
+    if (dto.image !== undefined) product.image = dto.image;
+    if (dto.available !== undefined) product.available = dto.available;
+    if (dto.stock !== undefined) product.stock = dto.stock;
 
     return this.productRepository.save(product);
   }

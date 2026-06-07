@@ -18,6 +18,8 @@ export class OrderSchema {
   status: string;
   @Column({ length: 4, nullable: true })
   deliveryVerificationCode?: string; 
+  @Column({ length: 4, nullable: true })
+  pickupVerificationCode?: string;
   @CreateDateColumn()
   createdAt: Date;
   @UpdateDateColumn()

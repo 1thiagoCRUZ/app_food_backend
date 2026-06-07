@@ -23,6 +23,7 @@ export class UserRepository implements UserRepositoryPort {
       password: Password.create(schema.passwordHash, true),
       cpf: schema.cpf ? CPF.create(schema.cpf) : undefined,
       phone: schema.phone || undefined,
+      role: schema.role,
       createdAt: schema.createdAt,
       updatedAt: schema.updatedAt,
     });
@@ -38,6 +39,7 @@ export class UserRepository implements UserRepositoryPort {
     schema.passwordHash = user.getPassword().getValue();
     schema.cpf = user.getCpf()?.getValue() || undefined;
     schema.phone = user.getPhone() || undefined;
+    schema.role = user.getRole();
     schema.createdAt = user.getCreatedAt();
     schema.updatedAt = user.getUpdatedAt();
     return schema;

@@ -21,6 +21,7 @@ export class OrderRepository implements OrderRepositoryPort {
       total: Number(schema.total),
       status: schema.status as any,
       deliveryVerificationCode: schema.deliveryVerificationCode || undefined,
+      pickupVerificationCode: schema.pickupVerificationCode || undefined,
       items: schema.items ? schema.items.map(item => ({
         productId: item.productId,
         name: item.name,
@@ -40,6 +41,7 @@ export class OrderRepository implements OrderRepositoryPort {
     schema.total = order.getTotal();
     schema.status = order.getStatus();
     schema.deliveryVerificationCode = order.getDeliveryVerificationCode() || undefined;
+    schema.pickupVerificationCode = order.getPickupVerificationCode() || undefined;
     
     if (order.getItems()) {
       schema.items = order.getItems().map(item => {

@@ -1,6 +1,9 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, Logger, UseGuards } from '@nestjs/common';
 import { PaymentFacade } from '../../application/payment.facade';
 import { JwtAuthGuard } from '../../../users/infrastructure/auth/jwt-auth.guard';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+
+@ApiTags('Payments')
 @Controller('payments')
 export class PaymentController {
   private readonly logger = new Logger(PaymentController.name);
@@ -31,6 +34,7 @@ export class PaymentController {
     }
   }
   @Post('checkout')
+  @ApiBearerAuth()
   @UseGuards(JwtAuthGuard)
   async createCheckout(
     @Body() body: { orderId: number; method: 'PIX' | 'CREDIT_CARD'; customerEmail: string }

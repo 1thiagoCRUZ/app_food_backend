@@ -4,6 +4,10 @@ import { CreateOrderDto } from '../dtos/order.dto';
 import { JwtAuthGuard } from '../../../users/infrastructure/auth/jwt-auth.guard';
 import { CurrentUser } from '../../../users/infrastructure/auth/current-user.decorator';
 
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+
+@ApiTags('Orders')
+@ApiBearerAuth()
 @Controller('orders')
 @UseGuards(JwtAuthGuard)
 export class OrderController {
@@ -24,5 +28,10 @@ export class OrderController {
   @Get(':id')
   async getOne(@Param('id') id: number) {
     return this.orderFacade.getOne(id);
+  }
+
+  @Get('restaurant/:id')
+  async listByRestaurant(@Param('id') id: number) {
+    return this.orderFacade.listByRestaurant(id);
   }
 }

@@ -8,6 +8,8 @@ import { UpdateUserUseCase } from './application/use-cases/update-user.use-caso'
 import { DeleteUserUseCase } from './application/use-cases/delete-user.use-case';
 import { ListUserUseCase } from './application/use-cases/list-user.use-case';
 import { GeocodeUserAddressUseCase } from './application/use-cases/geocode-user-address.usecase';
+import { AddAddressUseCase } from './application/use-cases/add-address.use-case';
+import { ListAddressesUseCase } from './application/use-cases/list-addresses.use-case';
 import { UserSchema } from './infrastructure/database/user.schema';
 import { AdressSchema } from './infrastructure/database/address.schema';
 import { UserRepository } from './infrastructure/database/user.repository';
@@ -42,6 +44,8 @@ import { JwtStrategy } from './infrastructure/auth/jwt.strategy';
     DeleteUserUseCase,
     ListUserUseCase,
     GeocodeUserAddressUseCase,
+    AddAddressUseCase,
+    ListAddressesUseCase,
     {
       provide: USER_REPOSITORY_PORT,
       useClass: UserRepository,

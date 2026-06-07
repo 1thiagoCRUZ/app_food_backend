@@ -1,5 +1,7 @@
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { UserSchema } from '../../../contexts/users/infrastructure/database/user.schema';
+import * as dotenv from 'dotenv';
+
+dotenv.config();
 
 const ormConfig: TypeOrmModuleOptions = {
   type: 'postgres',
@@ -11,6 +13,7 @@ const ormConfig: TypeOrmModuleOptions = {
   autoLoadEntities: true,
   synchronize: process.env.NODE_ENV !== 'production',
   logging: true,
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
 };
 
 export default ormConfig;

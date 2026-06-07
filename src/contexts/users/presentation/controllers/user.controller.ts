@@ -3,9 +3,13 @@ import { UserFacade } from '../../application/user.facade';
 import { RegisterUserDto } from '../dtos/register-user.dto';
 import { LoginDto } from '../dtos/login.dto';
 import { UpdateUserDto } from '../dtos/update-user.dto';
-import { UseGuards } from '@nestjs/common';
+import { CreateAddressDto } from '../dtos/address.dto';
+import { UseGuards, Request } from '@nestjs/common';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
+import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
 
+@ApiTags('Users')
+@ApiBearerAuth()
 @Controller('users')
 export class UserController {
   constructor(private readonly userFacade: UserFacade) {}
@@ -44,5 +48,18 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   async delete(@Param('id') id: number) {
     await this.userFacade.delete(id);
+  }
+
+  @Post('me/addresses')
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  async addAddress(@Request() req, @Body() createAddressDto: CreateAddressDto) {
+    return this.userFacade.addAddress(req.user.userId, createAddressDto);
+  }
+
+  @Get('me/addresses')
+  @UseGuards(JwtAuthGuard)
+  async listAddresses(@Request() req) {
+    return this.userFacade.listAddresses(req.user.userId);
   }
 }

@@ -13,6 +13,7 @@ export interface OrderProps {
     total: number;
     status: 'PENDING' | 'AWAITING_PAYMENT' | 'PREPARING' | 'DISPATCHED' | 'DELIVERED';
     deliveryVerificationCode?: string;
+    pickupVerificationCode?: string;
 }
 
 export class Order {
@@ -23,6 +24,7 @@ export class Order {
     private total: number;
     private status: 'PENDING' | 'AWAITING_PAYMENT' | 'PREPARING' | 'DISPATCHED' | 'DELIVERED';
     private deliveryVerificationCode?: string;
+    private pickupVerificationCode?: string;
 
     private constructor(props: OrderProps) {
         this.id = props.id;
@@ -32,6 +34,7 @@ export class Order {
         this.total = props.total;
         this.status = props.status;
         this.deliveryVerificationCode = props.deliveryVerificationCode;
+        this.pickupVerificationCode = props.pickupVerificationCode;
     }
 
     public static create(props: OrderProps): Order {
@@ -45,6 +48,7 @@ export class Order {
     public getTotal(): number { return this.total; }
     public getStatus(): string { return this.status; }
     public getDeliveryVerificationCode(): string | undefined { return this.deliveryVerificationCode; }
+    public getPickupVerificationCode(): string | undefined { return this.pickupVerificationCode; }
 
     public approvePayment(): void {
         this.status = 'PREPARING';

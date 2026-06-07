@@ -7,6 +7,9 @@ import { ListUserUseCase } from './use-cases/list-user.use-case';
 import { RegisterUserDto } from '../presentation/dtos/register-user.dto';
 import { LoginDto } from '../presentation/dtos/login.dto';
 import { UpdateUserDto } from '../presentation/dtos/update-user.dto';
+import { CreateAddressDto } from '../presentation/dtos/address.dto';
+import { AddAddressUseCase } from './use-cases/add-address.use-case';
+import { ListAddressesUseCase } from './use-cases/list-addresses.use-case';
 
 @Injectable()
 export class UserFacade {
@@ -16,6 +19,8 @@ export class UserFacade {
     private readonly updateUserUseCase: UpdateUserUseCase,
     private readonly deleteUserUseCase: DeleteUserUseCase,
     private readonly listUserUseCase: ListUserUseCase,
+    private readonly addAddressUseCase: AddAddressUseCase,
+    private readonly listAddressesUseCase: ListAddressesUseCase,
   ) {}
 
   register(dto: RegisterUserDto) {
@@ -36,5 +41,13 @@ export class UserFacade {
 
   list() {
     return this.listUserUseCase.execute();
+  }
+
+  addAddress(userId: number, dto: CreateAddressDto) {
+    return this.addAddressUseCase.execute(userId, dto);
+  }
+
+  listAddresses(userId: number) {
+    return this.listAddressesUseCase.execute(userId);
   }
 }

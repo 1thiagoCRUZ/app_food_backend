@@ -38,6 +38,13 @@ export class OrderFacade {
       order: { createdAt: 'DESC' },
     });
   }
+  async listByRestaurant(restaurantId: number) {
+    return this.orderRepository.find({
+      where: { restaurantId },
+      relations: ['items'],
+      order: { createdAt: 'DESC' },
+    });
+  }
   async getOne(id: number) {
     const order = await this.orderRepository.findOne({
       where: { id },

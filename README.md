@@ -325,6 +325,9 @@ npm run start:dev
 | `GET` | `/restaurants` | Listar restaurantes |
 | `PATCH` | `/restaurants/:id` | Atualizar restaurante |
 | `DELETE` | `/restaurants/:id` | Remover restaurante |
+| `PATCH` | `/restaurants/:id/status` | Alternar status do restaurante (Aberto/Fechado) |
+| `POST` | `/coupons` | Cadastrar novo cupom de desconto (Restaurant Context) |
+| `GET` | `/coupons` | Listar cupons de um restaurante |
 
 ### 📋 Catalog
 | Método | Rota | Descrição |
@@ -347,6 +350,11 @@ npm run start:dev
 | `POST` | `/payments/checkout` | Gerar cobrança Pix para um pedido |
 | `POST` | `/payments/webhook` | Receber notificação do Mercado Pago |
 
+### 📦 Delivery (Couriers)
+| Método | Rota | Descrição |
+|:---:|:---|:---|
+| `PATCH` | `/couriers/me/status` | Alternar status online/offline do entregador |
+
 ### 📡 WebSocket (Socket.IO)
 | Evento | Tipo | Descrição |
 |:---|:---:|:---|
@@ -356,6 +364,34 @@ npm run start:dev
 | `locationUpdate` | Listen | Receber atualização de GPS |
 | `chatMessage` | Listen | Receber mensagem de chat |
 | `paymentApproved` | Listen | Pagamento aprovado — pedido em preparo |
+
+---
+
+## 🛠️ Atualizações Recentes (Integração Frontend/Backend)
+
+- **Endereços e Geocoding (Google Maps)**: Funcionalidade de endereços criada. Ao criar um endereço de Cliente ou Restaurante, o sistema consome a API do Google Maps assincronamente e popula a `latitude` e `longitude` do banco automaticamente.
+- **Testes E2E (E to E)**: Testes automatizados criados em `test/catalog.e2e-spec.ts`, `test/locations.e2e-spec.ts` e `test/payments.e2e-spec.ts`. Validação completa do banco de dados na persistência dos itens e geocoding.
+- **Swagger Interativo**: A documentação foi enriquecida com o Decorador `@ApiProperty()` nos DTOs para exemplos de payloads. Também foi configurada autenticação JWT global no Swagger via `.addBearerAuth()`.
+
+---
+
+## 🚦 Testando o Fluxo Completo no Swagger
+
+1. **Acessando o Swagger**: Com o servidor rodando (`npm run start:dev`), acesse `http://localhost:3000/api/docs`.
+2. **Criando a Loja**: Chame `POST /restaurants` passando CNPJ e Nome. Memorize o ID.
+3. **Criando Produto**: Chame `POST /products` informando o ID da loja e o preço.
+4. **Registrando Usuário**: Chame `POST /users/register` com nome, email, senha e CPF.
+5. **Autenticação**:
+   - Chame `POST /users/login` usando as credenciais do usuário.
+   - O backend retornará um `access_token` (JWT).
+   - Copie esse token. No topo do Swagger, clique no botão verde **Authorize**.
+   - Cole o token e clique em Autenticar. Agora o cadeadinho aparecerá fechado, significando que o Swagger enviará esse token em todas as suas requisições seguras!
+6. **Cadastrando Endereços**: Como você está autenticado, chame `POST /users/me/addresses` (ou `POST /restaurants/:id/addresses`). O backend salvará a rua, processará a lat/lng via Google Maps silenciosamente por debaixo dos panos, e o dado estará no DB.
+7. **Criando o Pedido**: Chame `POST /orders`, informando o restaurante, o endereço de entrega, e o produto que você criou.
+8. **Gerando Pix e Pagando**: Chame `POST /payments/checkout` informando o ID do pedido. Em seguida, acione o `POST /payments/webhook` enviando o TransactionId no body para simular a resposta do Mercado Pago.
+9. **Mágica**: O pedido mudará para *PREPARING* e os websockets serão notificados!
+
+---
 
 ---
 
