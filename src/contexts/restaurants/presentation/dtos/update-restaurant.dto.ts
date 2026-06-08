@@ -1,4 +1,5 @@
 import { IsBoolean, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class UpdateRestaurantDto {
@@ -13,11 +14,11 @@ export class UpdateRestaurantDto {
     cnpj?: string;
 
     @ApiProperty({ example: true, required: false })
+    @Transform(({ value }) => value === 'true' || value === true)
     @IsBoolean()
     isOpen?: boolean;
 
-    @ApiProperty({ example: 'data:image/png;base64,iVBORw0KGgo...', required: false, description: 'Foto do restaurante em Base64' })
-    @IsString()
+    @ApiProperty({ type: 'string', format: 'binary', required: false, description: 'Foto do restaurante' })
     @IsOptional()
-    photo?: string;
+    photo?: any;
 }

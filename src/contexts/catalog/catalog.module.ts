@@ -5,11 +5,13 @@ import { CatalogFacade } from './application/catalog.facade';
 import { CatalogController } from './presentation/controllers/catalog.controller';
 
 import { RestaurantModule } from '../restaurants/restaurant.module';
+import { SharedModule } from '../../shared/shared.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([ProductSchema]),
-    RestaurantModule
+    RestaurantModule,
+    SharedModule
   ],
   controllers: [CatalogController],
   providers: [CatalogFacade],

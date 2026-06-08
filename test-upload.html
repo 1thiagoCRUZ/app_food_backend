@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>App Food - Teste de Upload S3 (Nativo)</title>
+  <style>
+    body { font-family: sans-serif; background: #f0f2f5; padding: 20px; }
+    .box { background: white; padding: 20px; border-radius: 8px; max-width: 500px; margin: 0 auto; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    input, select { width: 100%; padding: 10px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    button { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; margin-bottom: 10px; }
+    button:hover { background: #218838; }
+    .log { background: #222; color: #0f0; padding: 15px; font-family: monospace; border-radius: 4px; min-height: 100px; white-space: pre-wrap; word-wrap: break-word; }
+    #preview { max-width: 100px; display: none; margin-bottom: 10px; border-radius: 50%; }
+  </style>
+</head>
+<body>
+
+  <div class="box">
+    <h2>📸 Testar Cadastro + Foto S3 (Multipart Nativo)</h2>
+    <p>O App/Site lê o arquivo do seu PC e envia puro (binário) junto com o formulário para o Backend.</p>
+
+    <form id="registerForm">
+      <input type="text" id="name" placeholder="Nome do Usuário" value="Thiago Cruz">
+      <input type="email" id="email" placeholder="E-mail" value="thiago@teste.com">
+      <input type="password" id="password" placeholder="Senha" value="123456">
+      <input type="text" id="cpf" placeholder="CPF" value="123.456.789-00">
+      <input type="text" id="phone" placeholder="Telefone" value="11999999999">
+      
+      <select id="role">
+        <option value="CUSTOMER">Cliente</option>
+        <option value="RESTAURANT">Dono de Restaurante</option>
+        <option value="COURIER">Motoboy</option>
+      </select>
+
+      <label>Foto de Perfil:</label><br>
+      <input type="file" id="fileInput" accept="image/*" onchange="previewFile()"><br>
+      <img id="preview" src="" alt="Preview"><br>
+
+      <button type="button" onclick="registerUser()">Cadastrar e Subir Foto</button>
+    </form>
+
+    <h4>Resposta da API:</h4>
+    <div class="log" id="logBox">Logs...</div>
+  </div>
+
+  <script>
+    function previewFile() {
+      const file = document.getElementById('fileInput').files[0];
+      const preview = document.getElementById('preview');
+      
+      if (file) {
+        preview.src = URL.createObjectURL(file);
+        preview.style.display = "block";
+        log(`Arquivo selecionado: ${file.name} (${(file.size / 1024).toFixed(2)} KB) - Pronto para envio binário!`);
+      }
+    }
+
+    async function registerUser() {
+      const file = document.getElementById('fileInput').files[0];
+      
+      // Cria um objeto FormData Nativo
+      const formData = new FormData();
+      formData.append('name', document.getElementById('name').value);
+      formData.append('email', document.getElementById('email').value);
+      formData.append('password', document.getElementById('password').value);
+      formData.append('cpf', document.getElementById('cpf').value);
+      formData.append('phone', document.getElementById('phone').value);
+      formData.append('role', document.getElementById('role').value);
+      
+      if (file) {
+        // Adiciona o arquivo diretamente no formulário
+        formData.append('photo', file);
+      }
+
+      log("⏳ Enviando formulário binário para a API... Aguarde o S3!");
+
+      try {
+        const response = await fetch('http://localhost:3000/users/register', {
+          method: 'POST',
+          // IMPORTANTE: NÃO coloque 'Content-Type': 'application/json'
+          // O fetch cuida de setar o multipart/form-data com o boundary correto.
+          body: formData
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+          log("✅ SUCESSO!\n\n" + JSON.stringify(data, null, 2));
+        } else {
+          log("❌ ERRO!\n\n" + JSON.stringify(data, null, 2));
+        }
+      } catch (error) {
+        log("❌ ERRO FATAL: " + error.message);
+      }
+    }
+
+    function log(msg) {
+      document.getElementById('logBox').innerText = msg;
+    }
+  </script>
+</body>
+</html>

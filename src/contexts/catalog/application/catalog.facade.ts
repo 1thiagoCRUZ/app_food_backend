@@ -4,6 +4,8 @@ import { Repository } from 'typeorm';
 import { ProductSchema } from '../infrastructure/database/product.schema';
 import { CreateProductDto, UpdateProductDto } from '../presentation/dtos/product.dto';
 import { RESTAURANT_REPOSITORY_PORT, type RestaurantRepositoryPort } from '../../restaurants/application/ports/restaurant-repository.port';
+import type { StoragePort } from '../../../shared/ports/storage.port';
+import { STORAGE_PORT } from '../../../shared/ports/storage.port';
 
 @Injectable()
 export class CatalogFacade {
@@ -12,9 +14,11 @@ export class CatalogFacade {
     private readonly productRepository: Repository<ProductSchema>,
     @Inject(RESTAURANT_REPOSITORY_PORT)
     private readonly restaurantRepository: RestaurantRepositoryPort,
+    @Inject(STORAGE_PORT)
+    private readonly storage: StoragePort,
   ) {}
 
-  async create(dto: CreateProductDto, userId: number, role: string) {
+  async create(dto: CreateProductDto, userId: number, role: string, file?: Express.Multer.File) {
     if (role !== 'RESTAURANT') {
       throw new ForbiddenException('Apenas restaurantes podem criar produtos');
     }
@@ -32,7 +36,16 @@ export class CatalogFacade {
       available: dto.available !== undefined ? dto.available : true,
       stock: dto.stock !== undefined ? dto.stock : 0,
     });
-    return this.productRepository.save(product);
+    const savedProduct = await this.productRepository.save(product);
+
+    if (file) {
+      const ext = file.originalname.split('.').pop() || 'png';
+      const url = await this.storage.uploadFile(file.buffer, `restaurants/${dto.restaurantId}/products/${savedProduct.id}.${ext}`, file.mimetype);
+      savedProduct.image = url;
+      await this.productRepository.save(savedProduct);
+    }
+
+    return savedProduct;
   }
 
   async list(restaurantId?: number) {
@@ -42,7 +55,7 @@ export class CatalogFacade {
     return this.productRepository.find();
   }
 
-  async update(id: number, dto: UpdateProductDto, userId: number, role: string) {
+  async update(id: number, dto: UpdateProductDto, userId: number, role: string, file?: Express.Multer.File) {
     if (role !== 'RESTAURANT') {
       throw new ForbiddenException('Apenas restaurantes podem editar produtos');
     }
@@ -58,9 +71,14 @@ export class CatalogFacade {
     if (dto.name) product.name = dto.name;
     if (dto.description) product.description = dto.description;
     if (dto.price !== undefined) product.price = dto.price;
-    if (dto.image !== undefined) product.image = dto.image;
     if (dto.available !== undefined) product.available = dto.available;
     if (dto.stock !== undefined) product.stock = dto.stock;
+
+    if (file) {
+      const ext = file.originalname.split('.').pop() || 'png';
+      const url = await this.storage.uploadFile(file.buffer, `restaurants/${product.restaurantId}/products/${product.id}.${ext}`, file.mimetype);
+      product.image = url;
+    }
 
     return this.productRepository.save(product);
   }

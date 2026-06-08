@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>App Food - Teste Rastreio (WebSocket)</title>
+  <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; background: #f0f2f5; }
+    .container { display: flex; gap: 20px; }
+    .box { background: white; padding: 20px; border-radius: 8px; flex: 1; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+    button { padding: 10px 15px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; }
+    button:hover { background: #0056b3; }
+    .log { height: 200px; overflow-y: auto; background: #222; color: #0f0; padding: 10px; font-family: monospace; border-radius: 4px; margin-top: 10px; }
+  </style>
+</head>
+<body>
+  <h1>App Food - Rastreio em Tempo Real 🛵</h1>
+  <p>Conecte-se ao servidor e simule um motoboy enviando a localização para o cliente ver em tempo real.</p>
+  
+  <div class="container">
+    <!-- CLIENTE VIEW -->
+    <div class="box">
+      <h3>📱 Tela do Cliente (Esperando comida)</h3>
+      <input type="text" id="orderIdClient" value="123" placeholder="ID do Pedido">
+      <button onclick="connectClient()">Conectar e Entrar na Sala</button>
+      <div class="log" id="logClient">Logs do Cliente...<br></div>
+    </div>
+
+    <!-- MOTOBOY VIEW -->
+    <div class="box">
+      <h3>🛵 Tela do Motoboy (Enviando GPS)</h3>
+      <input type="text" id="orderIdDriver" value="123" placeholder="ID do Pedido">
+      <button onclick="connectDriver()">Conectar e Entrar na Sala</button>
+      <br><br>
+      <button onclick="sendLocation()" style="background: #28a745;">Emitir GPS (Mock)</button>
+      <div class="log" id="logDriver">Logs do Entregador...<br></div>
+    </div>
+  </div>
+
+  <script>
+    let socketClient;
+    let socketDriver;
+
+    function connectClient() {
+      const orderId = document.getElementById('orderIdClient').value;
+      socketClient = io('http://localhost:3000');
+      
+      socketClient.on('connect', () => {
+        log('logClient', 'Conectado ao WebSocket! ID: ' + socketClient.id);
+        socketClient.emit('joinOrderRoom', { orderId: Number(orderId) });
+      });
+
+      socketClient.on('joinedRoom', (data) => {
+        log('logClient', `Entrou na sala: ${data.room}`);
+      });
+
+      socketClient.on('locationUpdate', (data) => {
+        log('logClient', `📍 GPS Recebido: Lat ${data.lat}, Lng ${data.lng}`);
+      });
+    }
+
+    function connectDriver() {
+      const orderId = document.getElementById('orderIdDriver').value;
+      socketDriver = io('http://localhost:3000');
+      
+      socketDriver.on('connect', () => {
+        log('logDriver', 'Conectado ao WebSocket! ID: ' + socketDriver.id);
+        socketDriver.emit('joinOrderRoom', { orderId: Number(orderId) });
+      });
+
+      socketDriver.on('joinedRoom', (data) => {
+        log('logDriver', `Entrou na sala: ${data.room}`);
+      });
+    }
+
+    function sendLocation() {
+      if (!socketDriver) return alert('Motoboy não conectado!');
+      const orderId = document.getElementById('orderIdDriver').value;
+      
+      const lat = -23.5505 + (Math.random() * 0.001); // Mock SP lat
+      const lng = -46.6333 + (Math.random() * 0.001); // Mock SP lng
+
+      socketDriver.emit('sendLocation', { orderId: Number(orderId), lat, lng });
+      log('logDriver', `📡 Enviou GPS: Lat ${lat.toFixed(4)}, Lng ${lng.toFixed(4)}`);
+    }
+
+    function log(elementId, msg) {
+      const el = document.getElementById(elementId);
+      el.innerHTML += msg + '<br>';
+      el.scrollTop = el.scrollHeight;
+    }
+  </script>
+</body>
+</html>

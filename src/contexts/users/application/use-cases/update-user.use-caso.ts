@@ -3,15 +3,19 @@ import { UpdateUserDto } from '../../presentation/dtos/update-user.dto';
 import type { UserRepositoryPort } from '../ports/user-repository.port';
 import { USER_REPOSITORY_PORT } from '../ports/user-repository.port';
 import { CPF } from '../../domain/value-objects/cpf.vo';
+import type { StoragePort } from '../../../../shared/ports/storage.port';
+import { STORAGE_PORT } from '../../../../shared/ports/storage.port';
 
 @Injectable()
 export class UpdateUserUseCase {
   constructor(
     @Inject(USER_REPOSITORY_PORT)
     private readonly userRepository: UserRepositoryPort,
+    @Inject(STORAGE_PORT)
+    private readonly storage: StoragePort,
   ) { }
 
-  async execute(id: number, dto: UpdateUserDto): Promise<void> {
+  async execute(id: number, dto: UpdateUserDto, file?: Express.Multer.File): Promise<void> {
     const user = await this.userRepository.findById(id);
     if (!user) {
       throw new NotFoundException('User not found');
@@ -29,8 +33,10 @@ export class UpdateUserUseCase {
       user.updatePhone(dto.phone);
     }
 
-    if (dto.photo) {
-      user.updatePhoto(dto.photo);
+    if (file) {
+      const ext = file.originalname.split('.').pop() || 'png';
+      const url = await this.storage.uploadFile(file.buffer, `users/${user.getId()}/profile.${ext}`, file.mimetype);
+      user.updatePhoto(url);
     }
 
     if (dto.role) {

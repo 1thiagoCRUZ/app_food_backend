@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, ConflictException } from '@nestjs/common';
 import { User } from '../../domain/entities/user.entity';
 import { Email } from '../../domain/value-objects/email.vo';
 import { Password } from '../../domain/value-objects/password.vo';
@@ -8,6 +8,8 @@ import type { UserRepositoryPort } from '../ports/user-repository.port';
 import { USER_REPOSITORY_PORT } from '../ports/user-repository.port';
 import type { HashProviderPort } from '../ports/hash.provider.port';
 import { HASH_PROVIDER_PORT } from '../ports/hash.provider.port';
+import type { StoragePort } from '../../../../shared/ports/storage.port';
+import { STORAGE_PORT } from '../../../../shared/ports/storage.port';
 
 @Injectable()
 export class RegisterUserUseCase {
@@ -16,12 +18,14 @@ export class RegisterUserUseCase {
     private readonly userRepository: UserRepositoryPort,
     @Inject(HASH_PROVIDER_PORT)
     private readonly hashProvider: HashProviderPort,
+    @Inject(STORAGE_PORT)
+    private readonly storage: StoragePort,
   ) { }
 
-  async execute(dto: RegisterUserDto): Promise<Omit<User, 'password'>> {
+  async execute(dto: RegisterUserDto, file?: Express.Multer.File): Promise<Omit<User, 'password'>> {
     const existingUser = await this.userRepository.findByEmail(dto.email);
     if (existingUser) {
-      throw new Error('User with this email already exists');
+      throw new ConflictException('User with this email already exists');
     }
 
     const emailVo = Email.create(dto.email);
@@ -37,10 +41,18 @@ export class RegisterUserUseCase {
       password: hashedPasswordField,
       cpf: cpfVo,
       phone: dto.phone,
-      photo: dto.photo,
       role: dto.role,
     });
 
-    return this.userRepository.save(user);
+    const savedUser = await this.userRepository.save(user);
+
+    if (file) {
+      const ext = file.originalname.split('.').pop() || 'png';
+      const url = await this.storage.uploadFile(file.buffer, `users/${savedUser.getId()}/profile.${ext}`, file.mimetype);
+      savedUser.updatePhoto(url);
+      await this.userRepository.save(savedUser);
+    }
+
+    return savedUser;
   }
 }

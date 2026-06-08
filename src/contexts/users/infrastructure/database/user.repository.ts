@@ -49,8 +49,13 @@ export class UserRepository implements UserRepositoryPort {
 
   async save(user: User): Promise<User> {
     const schema = this.toSchema(user);
-    const savedSchema = await this.repository.save(schema);
-    return this.toDomain(savedSchema);
+    if (schema.id) {
+      await this.repository.update(schema.id, schema);
+      return user;
+    } else {
+      const savedSchema = await this.repository.save(schema);
+      return this.toDomain(savedSchema);
+    }
   }
 
   async findById(id: number): Promise<User | null> {

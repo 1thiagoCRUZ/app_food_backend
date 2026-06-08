@@ -1,4 +1,5 @@
-import { Controller, Post, Body, Get, Put, Param, Delete, HttpCode, HttpStatus, ForbiddenException } from '@nestjs/common';
+import { Controller, Post, Body, Get, Put, Param, Delete, HttpCode, HttpStatus, ForbiddenException, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { UserFacade } from '../../application/user.facade';
 import { RegisterUserDto } from '../dtos/register-user.dto';
 import { LoginDto } from '../dtos/login.dto';
@@ -6,7 +7,7 @@ import { UpdateUserDto } from '../dtos/update-user.dto';
 import { CreateAddressDto } from '../dtos/address.dto';
 import { UseGuards, Request } from '@nestjs/common';
 import { JwtAuthGuard } from '../../infrastructure/auth/jwt-auth.guard';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 
 @ApiTags('Users')
 @ApiBearerAuth()
@@ -15,9 +16,11 @@ export class UserController {
   constructor(private readonly userFacade: UserFacade) {}
 
   @Post('register')
+  @ApiConsumes('multipart/form-data')
   @HttpCode(HttpStatus.CREATED)
-  async register(@Body() registerUserDto: RegisterUserDto) {
-    const user = await this.userFacade.register(registerUserDto);
+  @UseInterceptors(FileInterceptor('photo'))
+  async register(@Body() registerUserDto: RegisterUserDto, @UploadedFile() file?: Express.Multer.File) {
+    const user = await this.userFacade.register(registerUserDto, file);
     return {
       message: 'User registered successfully',
       id: user.getId(),
@@ -49,12 +52,14 @@ export class UserController {
   }
 
   @Put(':id')
+  @ApiConsumes('multipart/form-data')
   @UseGuards(JwtAuthGuard)
-  async update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto, @Request() req) {
+  @UseInterceptors(FileInterceptor('photo'))
+  async update(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto, @Request() req, @UploadedFile() file?: Express.Multer.File) {
     if (id != req.user.userId) {
       throw new ForbiddenException('Você só pode editar sua própria conta');
     }
-    await this.userFacade.update(id, updateUserDto);
+    await this.userFacade.update(id, updateUserDto, file);
     return { message: 'User updated successfully' };
   }
 

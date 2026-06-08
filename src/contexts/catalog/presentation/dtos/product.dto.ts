@@ -1,8 +1,10 @@
 import { IsString, IsNumber, IsOptional, IsNotEmpty } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateProductDto {
   @ApiProperty({ example: 1, description: 'ID do Restaurante dono do produto' })
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   @IsNotEmpty()
   restaurantId: number;
@@ -18,20 +20,22 @@ export class CreateProductDto {
   description?: string;
 
   @ApiProperty({ example: 49.90, description: 'Preço do produto' })
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   @IsNotEmpty()
   price: number;
 
-  @ApiProperty({ example: 'https://img.com/pizza.jpg', required: false })
-  @IsString()
+  @ApiProperty({ type: 'string', format: 'binary', required: false })
   @IsOptional()
-  image?: string;
+  image?: any;
 
   @ApiProperty({ example: true, required: false })
+  @Transform(({ value }) => value === 'true' || value === true)
   @IsOptional()
   available?: boolean;
 
   @ApiProperty({ example: 50, required: false })
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   @IsOptional()
   stock?: number;
@@ -49,20 +53,22 @@ export class UpdateProductDto {
   description?: string;
 
   @ApiProperty({ example: 49.90, required: false })
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   @IsOptional()
   price?: number;
 
-  @ApiProperty({ example: 'https://img.com/pizza.jpg', required: false })
-  @IsString()
+  @ApiProperty({ type: 'string', format: 'binary', required: false })
   @IsOptional()
-  image?: string;
+  image?: any;
 
   @ApiProperty({ example: true, required: false })
+  @Transform(({ value }) => value === 'true' || value === true)
   @IsOptional()
   available?: boolean;
 
   @ApiProperty({ example: 50, required: false })
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   @IsOptional()
   stock?: number;

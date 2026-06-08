@@ -1,10 +1,11 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put, UseGuards, Request, ForbiddenException } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put, UseGuards, Request, ForbiddenException, UseInterceptors, UploadedFile } from "@nestjs/common";
+import { FileInterceptor } from '@nestjs/platform-express';
 import { RestaurantFacade } from "../../application/restaurant.facade";
 import { RegisterRestaurantDto } from "../dtos/register-restaurant.dto";
 import { UpdateRestaurantDto } from "../dtos/update-restaurant.dto";
 import { CreateRestaurantAddressDto } from "../dtos/restaurant-address.dto";
 import { JwtAuthGuard } from '../../../users/infrastructure/auth/jwt-auth.guard';
-import { ApiTags, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
 
 @ApiTags('Restaurants')
 @ApiBearerAuth()
@@ -14,9 +15,11 @@ export class RestaurantController {
     constructor(private readonly restaurantFacade: RestaurantFacade) {}
 
     @Post()
+    @ApiConsumes('multipart/form-data')
     @HttpCode(HttpStatus.CREATED)
-    async register(@Body() registerRestaurantDto: RegisterRestaurantDto) {
-        const restaurant = await this.restaurantFacade.register(registerRestaurantDto);
+    @UseInterceptors(FileInterceptor('photo'))
+    async register(@Body() registerRestaurantDto: RegisterRestaurantDto, @UploadedFile() file?: Express.Multer.File) {
+        const restaurant = await this.restaurantFacade.register(registerRestaurantDto, file);
         return {
             message: 'Restaurant registered successfully',
             id: restaurant.getId(),
@@ -24,13 +27,15 @@ export class RestaurantController {
     }
 
     @Put(':id')
+    @ApiConsumes('multipart/form-data')
     @HttpCode(HttpStatus.OK)
-    async update(@Param('id') id: number, @Body() updateRestaurantDto: UpdateRestaurantDto, @Request() req) {
+    @UseInterceptors(FileInterceptor('photo'))
+    async update(@Param('id') id: number, @Body() updateRestaurantDto: UpdateRestaurantDto, @Request() req, @UploadedFile() file?: Express.Multer.File) {
         const myRestaurant = await this.restaurantFacade.getMyRestaurant(req.user.userId || req.user.sub);
         if (!myRestaurant || myRestaurant.id != id) {
             throw new ForbiddenException('Você só pode editar seu próprio restaurante');
         }
-        await this.restaurantFacade.update(id, updateRestaurantDto);
+        await this.restaurantFacade.update(id, updateRestaurantDto, file);
         return {
             message: 'Restaurant updated successfully',
         };

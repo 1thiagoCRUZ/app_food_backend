@@ -24,12 +24,12 @@ export class RestaurantFacade {
         private readonly listRestaurantAddressesUseCase: ListRestaurantAddressesUseCase
     ) {}
 
-    register(dto: RegisterRestaurantDto) {
-        return this.registerRestaurantUseCase.execute(dto);
+    register(dto: RegisterRestaurantDto, file?: Express.Multer.File) {
+        return this.registerRestaurantUseCase.execute(dto, file);
     }
 
-    update(id: number, dto: UpdateRestaurantDto) {
-        return this.updateRestaurantUseCase.execute(id, dto);
+    update(id: number, dto: UpdateRestaurantDto, file?: Express.Multer.File) {
+        return this.updateRestaurantUseCase.execute(id, dto, file);
     }
 
     delete(id: number) {

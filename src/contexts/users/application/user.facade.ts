@@ -25,16 +25,16 @@ export class UserFacade {
     private readonly listAddressesUseCase: ListAddressesUseCase,
   ) {}
 
-  register(dto: RegisterUserDto) {
-    return this.registerUserUseCase.execute(dto);
+  register(dto: RegisterUserDto, file?: Express.Multer.File) {
+    return this.registerUserUseCase.execute(dto, file);
   }
 
   login(dto: LoginDto) {
     return this.authenticateUserUseCase.execute(dto);
   }
 
-  update(id: number, dto: UpdateUserDto) {
-    return this.updateUserUseCase.execute(id, dto);
+  update(id: number, dto: UpdateUserDto, file?: Express.Multer.File) {
+    return this.updateUserUseCase.execute(id, dto, file);
   }
 
   delete(id: number) {
