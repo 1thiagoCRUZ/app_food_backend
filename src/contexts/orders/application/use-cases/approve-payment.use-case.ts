@@ -1,11 +1,13 @@
 import { Injectable, NotFoundException, ForbiddenException, Inject, BadRequestException } from '@nestjs/common';
 import { ORDER_REPOSITORY_PORT, type OrderRepositoryPort } from '../ports/order-repository.port';
+import { DataSource } from 'typeorm';
 
 @Injectable()
 export class ApprovePaymentUseCase {
   constructor(
     @Inject(ORDER_REPOSITORY_PORT)
     private readonly orderRepository: OrderRepositoryPort,
+    private readonly dataSource: DataSource,
   ) {}
 
   async execute(id: number, userId: number, role: string): Promise<void> {
@@ -26,5 +28,8 @@ export class ApprovePaymentUseCase {
     }
 
     await this.orderRepository.save(order);
+    
+    // Atualiza a tabela de payments (simulação)
+    await this.dataSource.query(`UPDATE "payments" SET status = 'APPROVED' WHERE "orderId" = $1`, [id]);
   }
 }
