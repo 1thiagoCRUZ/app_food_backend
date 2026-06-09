@@ -9,7 +9,7 @@ export class AcceptOrderUseCase {
   ) {}
 
   async execute(id: number, userId: number, role: string): Promise<void> {
-    if (role !== 'DELIVERY') {
+    if (role !== 'DELIVERY' && role !== 'COURIER') {
       throw new ForbiddenException('Apenas entregadores podem aceitar corridas');
     }
 

@@ -9,7 +9,7 @@ export class ListAvailableOrdersUseCase {
   ) {}
 
   async execute(role: string) {
-    if (role !== 'DELIVERY') {
+    if (role !== 'DELIVERY' && role !== 'COURIER') {
       throw new ForbiddenException('Apenas entregadores podem ver pedidos disponíveis');
     }
 
