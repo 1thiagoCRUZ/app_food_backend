@@ -1,11 +1,11 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put, UseGuards, Request, ForbiddenException, UseInterceptors, UploadedFile } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Put, UseGuards, Request, ForbiddenException, UseInterceptors, UploadedFile, BadRequestException } from "@nestjs/common";
 import { FileInterceptor } from '@nestjs/platform-express';
 import { RestaurantFacade } from "../../application/restaurant.facade";
 import { RegisterRestaurantDto } from "../dtos/register-restaurant.dto";
 import { UpdateRestaurantDto } from "../dtos/update-restaurant.dto";
 import { CreateRestaurantAddressDto } from "../dtos/restaurant-address.dto";
 import { JwtAuthGuard } from '../../../users/infrastructure/auth/jwt-auth.guard';
-import { ApiTags, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiConsumes, ApiBody } from '@nestjs/swagger';
 
 @ApiTags('Restaurants')
 @ApiBearerAuth()
@@ -65,7 +65,11 @@ export class RestaurantController {
 
     @Patch(':id/status')
     @HttpCode(HttpStatus.OK)
+    @ApiBody({ schema: { type: 'object', properties: { isOpen: { type: 'boolean' } } } })
     async toggleStatus(@Param('id') id: number, @Body('isOpen') isOpen: boolean, @Request() req) {
+        if (isOpen === undefined) {
+            throw new BadRequestException('isOpen is required');
+        }
         const myRestaurant = await this.restaurantFacade.getMyRestaurant(req.user.userId || req.user.sub);
         if (!myRestaurant || myRestaurant.id != id) {
             throw new ForbiddenException('Você só pode alterar o status do seu próprio restaurante');
