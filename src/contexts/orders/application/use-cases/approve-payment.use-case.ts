@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException, ForbiddenException, Inject, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, Inject, BadRequestException, forwardRef } from '@nestjs/common';
 import { ORDER_REPOSITORY_PORT, type OrderRepositoryPort } from '../ports/order-repository.port';
+import { PaymentFacade } from '../../payments/application/payment.facade';
 import { DataSource } from 'typeorm';
 
 @Injectable()
@@ -7,7 +8,8 @@ export class ApprovePaymentUseCase {
   constructor(
     @Inject(ORDER_REPOSITORY_PORT)
     private readonly orderRepository: OrderRepositoryPort,
-    private readonly dataSource: DataSource,
+    @Inject(forwardRef(() => PaymentFacade))
+    private readonly paymentFacade: PaymentFacade,
   ) {}
 
   async execute(id: number, userId: number, role: string): Promise<void> {
@@ -16,7 +18,6 @@ export class ApprovePaymentUseCase {
       throw new NotFoundException('Order not found');
     }
 
-    // Permitindo que o cliente que fez o pedido simule o pagamento para fins acadêmicos
     if (role === 'CUSTOMER' && order.getUserId() !== userId) {
       throw new ForbiddenException('Access denied. This order is not yours.');
     }
@@ -29,7 +30,9 @@ export class ApprovePaymentUseCase {
 
     await this.orderRepository.save(order);
     
-    // Atualiza a tabela de payments (simulação)
-    await this.dataSource.query(`UPDATE "payments" SET status = 'APPROVED' WHERE "orderId" = $1`, [id]);
+    // Atualiza a tabela de payments de forma correta via módulo de pagamentos
+    if (order.getId()) {
+      await this.paymentFacade.simulateApprovalByOrder(order.getId()!);
+    }
   }
 }

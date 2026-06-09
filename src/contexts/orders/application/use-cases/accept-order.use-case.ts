@@ -1,13 +1,14 @@
-import { Injectable, NotFoundException, ForbiddenException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, Inject, forwardRef } from '@nestjs/common';
 import { ORDER_REPOSITORY_PORT, type OrderRepositoryPort } from '../ports/order-repository.port';
-import { DataSource } from 'typeorm';
+import { CourierFacade } from '../../delivery/application/courier.facade';
 
 @Injectable()
 export class AcceptOrderUseCase {
   constructor(
     @Inject(ORDER_REPOSITORY_PORT)
     private readonly orderRepository: OrderRepositoryPort,
-    private readonly dataSource: DataSource,
+    @Inject(forwardRef(() => CourierFacade))
+    private readonly courierFacade: CourierFacade,
   ) {}
 
   async execute(id: number, userId: number, role: string): Promise<void> {
@@ -15,9 +16,16 @@ export class AcceptOrderUseCase {
       throw new ForbiddenException('Only couriers can accept orders');
     }
 
-    const courierInfo = await this.dataSource.query(`SELECT "isOnline" FROM couriers WHERE "userId" = $1`, [userId]);
-    if (!courierInfo || courierInfo.length === 0 || !courierInfo[0].isOnline) {
-      throw new ForbiddenException('You must be online to accept orders');
+    try {
+      const courierProfile = await this.courierFacade.getProfile(userId);
+      if (!courierProfile.isOnline) {
+        throw new ForbiddenException('You must be online to accept orders');
+      }
+    } catch (error: any) {
+      if (error instanceof NotFoundException) {
+         throw new ForbiddenException('Courier profile not found');
+      }
+      throw error;
     }
 
     const order = await this.orderRepository.findById(id);

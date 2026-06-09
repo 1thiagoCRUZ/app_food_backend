@@ -1,12 +1,14 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { OrderSchema } from './infrastructure/database/order.schema';
 import { OrderItemSchema } from './infrastructure/database/order-item.schema';
-import { OrderRepository } from './infrastructure/database/order.repository';
 import { ORDER_REPOSITORY_PORT } from './application/ports/order-repository.port';
-import { OrderFacade } from './application/order.facade';
+import { OrderRepository } from './infrastructure/database/order.repository';
 import { OrderController } from './presentation/controllers/order.controller';
 import { RestaurantModule } from '../restaurants/restaurant.module';
+import { DeliveryModule } from '../delivery/delivery.module';
+import { PaymentsModule } from '../payments/payments.module';
+import { OrderFacade } from './application/order.facade';
 
 import { SetOrderReadyUseCase } from './application/use-cases/set-order-ready.use-case';
 import { ConfirmOrderUseCase } from './application/use-cases/confirm-order.use-case';
@@ -27,7 +29,9 @@ import { ProductSchema } from '../catalog/infrastructure/database/product.schema
 @Module({
   imports: [
     TypeOrmModule.forFeature([OrderSchema, OrderItemSchema, UserSchema, AdressSchema, CouponSchema, ProductSchema]),
-    RestaurantModule
+    RestaurantModule,
+    forwardRef(() => DeliveryModule),
+    forwardRef(() => PaymentsModule)
   ],
   controllers: [OrderController],
   providers: [
