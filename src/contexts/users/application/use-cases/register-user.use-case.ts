@@ -10,6 +10,7 @@ import type { HashProviderPort } from '../ports/hash.provider.port';
 import { HASH_PROVIDER_PORT } from '../ports/hash.provider.port';
 import type { StoragePort } from '../../../../shared/ports/storage.port';
 import { STORAGE_PORT } from '../../../../shared/ports/storage.port';
+import { CourierFacade } from '../../../delivery/application/courier.facade';
 
 @Injectable()
 export class RegisterUserUseCase {
@@ -20,6 +21,7 @@ export class RegisterUserUseCase {
     private readonly hashProvider: HashProviderPort,
     @Inject(STORAGE_PORT)
     private readonly storage: StoragePort,
+    private readonly courierFacade: CourierFacade,
   ) { }
 
   async execute(dto: RegisterUserDto, file?: Express.Multer.File): Promise<Omit<User, 'password'>> {
@@ -51,6 +53,10 @@ export class RegisterUserUseCase {
       const url = await this.storage.uploadFile(file.buffer, `users/${savedUser.getId()}/profile.${ext}`, file.mimetype);
       savedUser.updatePhoto(url);
       await this.userRepository.save(savedUser);
+    }
+
+    if (savedUser.getRole() === 'DELIVERY') {
+      await this.courierFacade.createProfile(savedUser.getId()!, dto.cnh, dto.vehiclePlate);
     }
 
     return savedUser;

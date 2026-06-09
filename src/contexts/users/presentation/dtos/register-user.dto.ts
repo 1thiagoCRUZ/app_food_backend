@@ -40,4 +40,14 @@ export class RegisterUserDto {
   @IsString()
   @IsOptional()
   role?: string;
+
+  @ApiProperty({ example: '12345678901', description: 'CNH do entregador', required: false })
+  @IsString()
+  @IsOptional()
+  cnh?: string;
+
+  @ApiProperty({ example: 'ABC1234', description: 'Placa do veículo do entregador', required: false })
+  @IsString()
+  @IsOptional()
+  vehiclePlate?: string;
 }

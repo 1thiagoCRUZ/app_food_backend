@@ -10,6 +10,7 @@ import { CourierRepository } from './infrastructure/database/courier.repository'
 import { ToggleOnlineStatusUseCase } from './application/use-cases/toggle-online-status.use-case';
 import { UpdateCourierProfileUseCase } from './application/use-cases/update-courier-profile.use-case';
 import { GetCourierProfileUseCase } from './application/use-cases/get-courier-profile.use-case';
+import { CreateCourierProfileUseCase } from './application/use-cases/create-courier-profile.use-case';
 import { OrdersModule } from '../orders/orders.module';
 
 @Module({
@@ -24,7 +25,8 @@ import { OrdersModule } from '../orders/orders.module';
     CourierRepository,
     ToggleOnlineStatusUseCase,
     UpdateCourierProfileUseCase,
-    GetCourierProfileUseCase
+    GetCourierProfileUseCase,
+    CreateCourierProfileUseCase
   ],
   exports: [DeliveryFacade, CourierFacade]
 })
