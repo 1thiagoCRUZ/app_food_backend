@@ -66,7 +66,7 @@ export class OrderFacade {
   }
 
   async countCourierDeliveries(courierId: number): Promise<number> {
-    return this.orderRepository.countDeliveries(courierId);
+    return this.orderRepository.count({ where: { courierId, status: 'DELIVERED' } });
   }
 
   async accept(id: number, userId: number, role: string) {

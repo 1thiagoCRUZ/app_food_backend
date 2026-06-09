@@ -27,7 +27,9 @@ export class CourierRepository {
 
   private toSchema(courier: Courier): CourierSchema {
     const schema = new CourierSchema();
-    schema.id = courier.getId();
+    if (courier.getId()) {
+      schema.id = courier.getId()!;
+    }
     schema.userId = courier.getUserId();
     schema.isOnline = courier.getIsOnline();
     schema.currentLat = courier.getCurrentLat();
