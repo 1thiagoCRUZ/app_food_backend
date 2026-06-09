@@ -1,7 +1,7 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Put, Param, Request, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Put, Param, Request, UseGuards, BadRequestException } from '@nestjs/common';
 import { CourierFacade } from '../../application/courier.facade';
 import { JwtAuthGuard } from '../../../users/infrastructure/auth/jwt-auth.guard';
-import { ApiTags, ApiBearerAuth, ApiOperation } from '@nestjs/swagger';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiBody } from '@nestjs/swagger';
 import { UpdateCourierProfileDto } from '../dtos/update-courier-profile.dto';
 
 @ApiTags('Couriers')
@@ -13,7 +13,11 @@ export class CourierController {
 
   @Patch('me/status')
   @HttpCode(HttpStatus.OK)
+  @ApiBody({ schema: { type: 'object', properties: { isOnline: { type: 'boolean' } } } })
   async toggleStatus(@Request() req, @Body('isOnline') isOnline: boolean) {
+    if (isOnline === undefined) {
+      throw new BadRequestException('isOnline is required');
+    }
     const userId = req.user.id;
     const role = req.user.role;
     const courier = await this.courierFacade.toggleOnlineStatus(userId, role, isOnline);
