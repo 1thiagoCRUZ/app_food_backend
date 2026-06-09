@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, Inject, BadRequestException } from '@nestjs/common';
 import { ORDER_REPOSITORY_PORT, type OrderRepositoryPort } from '../ports/order-repository.port';
 
 @Injectable()
@@ -10,19 +10,23 @@ export class DeliverOrderUseCase {
 
   async execute(id: number, userId: number, role: string, code: string): Promise<void> {
     if (role !== 'DELIVERY' && role !== 'COURIER') {
-      throw new ForbiddenException('Apenas entregadores podem entregar pedidos');
+      throw new ForbiddenException('Only couriers can deliver orders');
     }
 
     const order = await this.orderRepository.findById(id);
     if (!order) {
-      throw new NotFoundException('Pedido não encontrado');
+      throw new NotFoundException('Order not found');
     }
 
     if (order.getCourierId() !== userId) {
-      throw new ForbiddenException('Este pedido foi aceito por outro entregador');
+      throw new ForbiddenException('This order was accepted by another courier');
     }
 
-    order.deliver(code);
+    try {
+      order.deliver(code);
+    } catch (e: any) {
+      throw new BadRequestException(e.message);
+    }
     await this.orderRepository.save(order);
   }
 }

@@ -13,17 +13,17 @@ export class ConfirmOrderUseCase {
 
   async execute(id: number, userId: number, role: string): Promise<void> {
     if (role !== 'RESTAURANT') {
-      throw new ForbiddenException('Apenas restaurantes podem confirmar um pedido');
+      throw new ForbiddenException('Only restaurants can confirm an order');
     }
 
     const order = await this.orderRepository.findById(id);
     if (!order) {
-      throw new NotFoundException('Pedido não encontrado');
+      throw new NotFoundException('Order not found');
     }
 
     const restaurant = await this.restaurantRepository.findById(order.getRestaurantId());
     if (!restaurant || restaurant.getOwnerId() !== userId) {
-      throw new ForbiddenException('Acesso negado. Você não é o dono deste restaurante');
+      throw new ForbiddenException('Access denied. You do not own this restaurant');
     }
 
     try {

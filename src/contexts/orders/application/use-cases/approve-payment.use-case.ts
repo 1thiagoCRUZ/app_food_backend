@@ -13,12 +13,12 @@ export class ApprovePaymentUseCase {
   async execute(id: number, userId: number, role: string): Promise<void> {
     const order = await this.orderRepository.findById(id);
     if (!order) {
-      throw new NotFoundException('Pedido não encontrado');
+      throw new NotFoundException('Order not found');
     }
 
     // Permitindo que o cliente que fez o pedido simule o pagamento para fins acadêmicos
     if (role === 'CUSTOMER' && order.getUserId() !== userId) {
-      throw new ForbiddenException('Acesso negado. Este pedido não é seu.');
+      throw new ForbiddenException('Access denied. This order is not yours.');
     }
 
     try {

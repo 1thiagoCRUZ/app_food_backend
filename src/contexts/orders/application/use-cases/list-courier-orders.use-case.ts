@@ -10,7 +10,7 @@ export class ListCourierOrdersUseCase {
 
   async execute(userId: number, role: string) {
     if (role !== 'DELIVERY' && role !== 'COURIER') {
-      throw new ForbiddenException('Apenas entregadores podem ver seus próprios pedidos');
+      throw new ForbiddenException('Only couriers can see their own orders');
     }
 
     return this.orderRepository.findCourierOrders(userId);

@@ -20,8 +20,8 @@ export class CourierFacade {
     return this.createCourierProfileUseCase.execute(userId, cnh, vehiclePlate);
   }
 
-  toggleOnlineStatus(userId: number, isOnline: boolean) {
-    return this.toggleOnlineStatusUseCase.execute(userId, isOnline);
+  toggleOnlineStatus(userId: number, role: string, isOnline: boolean) {
+    return this.toggleOnlineStatusUseCase.execute(userId, role, isOnline);
   }
 
   async listAll() {

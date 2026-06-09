@@ -93,10 +93,10 @@ export class OrderFacade {
 
     for (const item of dto.items) {
       const product = await this.productRepository.findOne({ where: { id: item.productId } });
-      if (!product) throw new NotFoundException(`Produto ID ${item.productId} não encontrado`);
-      if (product.restaurantId !== dto.restaurantId) throw new BadRequestException(`Produto ID ${item.productId} não pertence a este restaurante`);
-      if (!product.available) throw new BadRequestException(`Produto ${product.name} não está disponível no momento`);
-      if (product.stock < item.quantity) throw new BadRequestException(`Estoque insuficiente para o produto ${product.name}. Disponível: ${product.stock}`);
+      if (!product) throw new NotFoundException(`Product ID ${item.productId} not found`);
+      if (product.restaurantId !== dto.restaurantId) throw new BadRequestException(`Product ID ${item.productId} does not belong to this restaurant`);
+      if (!product.available) throw new BadRequestException(`Product ${product.name} is currently unavailable`);
+      if (product.stock < item.quantity) throw new BadRequestException(`Insufficient stock for product ${product.name}. Available: ${product.stock}`);
 
       // Deduct stock
       product.stock -= item.quantity;
@@ -113,10 +113,10 @@ export class OrderFacade {
       items.push(orderItem);
     }
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('Usuário não encontrado');
+    if (!user) throw new NotFoundException('User not found');
 
     const address = await this.addressRepository.findOne({ where: { id: dto.deliveryAddressId, userId } });
-    if (!address) throw new NotFoundException('Endereço de entrega não encontrado');
+    if (!address) throw new NotFoundException('Delivery address not found');
 
     let subtotal = total;
     let discount = 0;
@@ -126,11 +126,11 @@ export class OrderFacade {
         where: { code: dto.couponCode.toUpperCase(), restaurantId: dto.restaurantId } 
       });
 
-      if (!coupon) throw new BadRequestException('Cupom inválido ou não pertence a este restaurante');
-      if (!coupon.isActive) throw new BadRequestException('Este cupom não está mais ativo');
-      if (new Date() > new Date(coupon.expiresAt)) throw new BadRequestException('Este cupom expirou');
-      if (coupon.limit > 0 && coupon.uses >= coupon.limit) throw new BadRequestException('Este cupom já atingiu o limite de usos');
-      if (subtotal < coupon.min) throw new BadRequestException(`O valor mínimo para usar este cupom é R$ ${coupon.min}`);
+      if (!coupon) throw new BadRequestException('Invalid coupon or does not belong to this restaurant');
+      if (!coupon.isActive) throw new BadRequestException('This coupon is no longer active');
+      if (new Date() > new Date(coupon.expiresAt)) throw new BadRequestException('This coupon has expired');
+      if (coupon.limit > 0 && coupon.uses >= coupon.limit) throw new BadRequestException('This coupon has reached its usage limit');
+      if (subtotal < coupon.min) throw new BadRequestException(`The minimum amount to use this coupon is R$ ${coupon.min}`);
 
       if (coupon.type === 'percent') {
         discount = (subtotal * Number(coupon.value)) / 100;
@@ -180,7 +180,7 @@ export class OrderFacade {
   async listByRestaurant(restaurantId: number, userId: number) {
     const restaurant = await this.restaurantRepository.findById(restaurantId);
     if (!restaurant || restaurant.getOwnerId() !== userId) {
-      throw new ForbiddenException('Acesso negado aos pedidos do restaurante');
+      throw new ForbiddenException('Access denied to restaurant orders');
     }
     return this.orderRepository.find({
       where: { restaurantId },
@@ -193,11 +193,11 @@ export class OrderFacade {
       where: { id },
       relations: ['items'],
     });
-    if (!order) throw new NotFoundException('Pedido não encontrado');
+    if (!order) throw new NotFoundException('Order not found');
     if (order.userId !== userId) {
       const restaurant = await this.restaurantRepository.findById(order.restaurantId);
       if (!restaurant || restaurant.getOwnerId() !== userId) {
-        throw new ForbiddenException('Acesso negado ao pedido');
+        throw new ForbiddenException('Access denied to the order');
       }
     }
     return order;
@@ -209,16 +209,16 @@ export class OrderFacade {
       relations: ['items'],
     });
 
-    if (!order) throw new NotFoundException('Pedido não encontrado');
+    if (!order) throw new NotFoundException('Order not found');
 
     if (role === 'CUSTOMER' && order.userId !== userId) {
-      throw new ForbiddenException('Você não tem permissão para cancelar este pedido');
+      throw new ForbiddenException('Access denied to the order');
     }
 
     if (role === 'RESTAURANT') {
       const restaurant = await this.restaurantRepository.findById(order.restaurantId);
       if (!restaurant || restaurant.getOwnerId() !== userId) {
-        throw new ForbiddenException('Acesso negado ao pedido do restaurante');
+        throw new ForbiddenException('Access denied to restaurant order');
       }
     }
 

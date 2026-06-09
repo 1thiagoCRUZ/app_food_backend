@@ -10,7 +10,7 @@ export class ListAvailableOrdersUseCase {
 
   async execute(role: string) {
     if (role !== 'DELIVERY' && role !== 'COURIER') {
-      throw new ForbiddenException('Apenas entregadores podem ver pedidos disponíveis');
+      throw new ForbiddenException('Only couriers can see available orders');
     }
 
     return this.orderRepository.findAvailableOrders();

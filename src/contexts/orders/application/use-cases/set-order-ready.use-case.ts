@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException, Inject } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, Inject, BadRequestException } from '@nestjs/common';
 import { ORDER_REPOSITORY_PORT, type OrderRepositoryPort } from '../ports/order-repository.port';
 import { RESTAURANT_REPOSITORY_PORT, type RestaurantRepositoryPort } from '../../../restaurants/application/ports/restaurant-repository.port';
 
@@ -13,20 +13,24 @@ export class SetOrderReadyUseCase {
 
   async execute(id: number, userId: number, role: string): Promise<void> {
     if (role !== 'RESTAURANT') {
-      throw new ForbiddenException('Apenas restaurantes podem alterar o status do pedido');
+      throw new ForbiddenException('Only restaurants can change order status');
     }
 
     const order = await this.orderRepository.findById(id);
     if (!order) {
-      throw new NotFoundException('Pedido não encontrado');
+      throw new NotFoundException('Order not found');
     }
 
     const restaurant = await this.restaurantRepository.findById(order.getRestaurantId());
     if (!restaurant || restaurant.getOwnerId() !== userId) {
-      throw new ForbiddenException('Acesso negado. Você não é o dono deste restaurante');
+      throw new ForbiddenException('Access denied. You do not own this restaurant');
     }
 
-    order.setReadyForPickup();
+    try {
+      order.setReadyForPickup();
+    } catch (e: any) {
+      throw new BadRequestException(e.message);
+    }
     await this.orderRepository.save(order);
   }
 }

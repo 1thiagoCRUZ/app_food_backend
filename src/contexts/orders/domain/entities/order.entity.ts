@@ -108,30 +108,30 @@ export class Order {
 
     public confirm(): void {
         if (this.status !== 'PAID' && this.status !== 'PENDING') {
-            throw new Error('O pedido não está aguardando confirmação do restaurante');
+            throw new Error('Order is not waiting for restaurant confirmation');
         }
         this.status = 'PREPARING';
     }
 
     public setReadyForPickup(): void {
-        if (this.status !== 'PREPARING') throw new Error('Pedido não está sendo preparado');
+        if (this.status !== 'PREPARING') throw new Error('Order is not being prepared');
         this.status = 'READY_FOR_PICKUP';
     }
 
     public assignCourier(courierId: number): void {
-        if (this.status !== 'READY_FOR_PICKUP') throw new Error('Pedido não está pronto para entrega');
+        if (this.status !== 'READY_FOR_PICKUP') throw new Error('Order is not ready for delivery');
         this.courierId = courierId;
     }
 
     public pickup(code: string): void {
-        if (this.status !== 'READY_FOR_PICKUP') throw new Error('Pedido não está aguardando retirada');
-        if (this.pickupVerificationCode !== code) throw new Error('Código de retirada inválido');
+        if (this.status !== 'READY_FOR_PICKUP') throw new Error('Order is not awaiting pickup');
+        if (this.pickupVerificationCode !== code) throw new Error('Invalid pickup code');
         this.status = 'IN_TRANSIT';
     }
 
     public deliver(code: string): void {
-        if (this.status !== 'IN_TRANSIT') throw new Error('Pedido não está em trânsito');
-        if (this.deliveryVerificationCode !== code) throw new Error('Código de entrega inválido');
+        if (this.status !== 'IN_TRANSIT') throw new Error('Order is not in transit');
+        if (this.deliveryVerificationCode !== code) throw new Error('Invalid delivery code');
         this.status = 'DELIVERED';
     }
 }

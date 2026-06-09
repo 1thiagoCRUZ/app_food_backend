@@ -15,7 +15,8 @@ export class CourierController {
   @HttpCode(HttpStatus.OK)
   async toggleStatus(@Request() req, @Body('isOnline') isOnline: boolean) {
     const userId = req.user.id;
-    const courier = await this.courierFacade.toggleOnlineStatus(userId, isOnline);
+    const role = req.user.role;
+    const courier = await this.courierFacade.toggleOnlineStatus(userId, role, isOnline);
     return {
       message: 'Status updated successfully',
       isOnline: courier.getIsOnline(),

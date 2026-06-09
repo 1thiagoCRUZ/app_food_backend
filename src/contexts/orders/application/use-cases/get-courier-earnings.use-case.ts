@@ -10,7 +10,7 @@ export class GetCourierEarningsUseCase {
 
   async execute(userId: number, role: string) {
     if (role !== 'DELIVERY' && role !== 'COURIER') {
-      throw new ForbiddenException('Apenas entregadores podem ver seus ganhos');
+      throw new ForbiddenException('Only couriers can see their earnings');
     }
 
     const orders = await this.orderRepository.findCourierOrders(userId);
