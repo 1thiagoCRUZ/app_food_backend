@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException, Inject, forwardRef } from '@nestjs/common';
 import { ORDER_REPOSITORY_PORT, type OrderRepositoryPort } from '../ports/order-repository.port';
-import { CourierFacade } from '../../delivery/application/courier.facade';
+import { CourierFacade } from '../../../delivery/application/courier.facade';
 
 @Injectable()
 export class AcceptOrderUseCase {

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException, Inject, BadRequestException, forwardRef } from '@nestjs/common';
 import { ORDER_REPOSITORY_PORT, type OrderRepositoryPort } from '../ports/order-repository.port';
-import { PaymentFacade } from '../../payments/application/payment.facade';
+import { PaymentFacade } from '../../../payments/application/payment.facade';
 import { DataSource } from 'typeorm';
 
 @Injectable()
