@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { PaymentSchema } from './infrastructure/database/payment.schema';
 import { PaymentController } from './presentation/controllers/payment.controller';
@@ -19,7 +19,7 @@ import { PaymentFacade } from './application/payment.facade';
   imports: [
     TypeOrmModule.forFeature([PaymentSchema]),
     CommunicationsModule,
-    OrdersModule
+    forwardRef(() => OrdersModule)
   ],
   controllers: [PaymentController],
   providers: [
