@@ -11,6 +11,12 @@ export class CourierSchema {
   @Column({ default: false })
   isOnline: boolean;
 
+  @Column({ nullable: true })
+  cnh?: string;
+
+  @Column({ nullable: true })
+  vehiclePlate?: string;
+
   @Column('decimal', { precision: 10, scale: 8, nullable: true })
   currentLat?: number;
 

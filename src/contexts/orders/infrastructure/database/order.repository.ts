@@ -116,4 +116,10 @@ export class OrderRepository implements OrderRepositoryPort {
     });
     return schemas.map(s => this.toDomain(s));
   }
+
+  async countDeliveries(courierId: number): Promise<number> {
+    return this.repository.count({
+      where: { courierId, status: 'DELIVERED' }
+    });
+  }
 }

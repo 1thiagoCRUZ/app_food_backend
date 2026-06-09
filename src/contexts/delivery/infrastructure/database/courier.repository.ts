@@ -18,20 +18,27 @@ export class CourierRepository {
       isOnline: schema.isOnline,
       currentLat: schema.currentLat ? Number(schema.currentLat) : undefined,
       currentLng: schema.currentLng ? Number(schema.currentLng) : undefined,
+      cnh: schema.cnh || undefined,
+      vehiclePlate: schema.vehiclePlate || undefined,
       createdAt: schema.createdAt,
       updatedAt: schema.updatedAt,
     });
   }
 
-  async save(courier: Courier): Promise<Courier> {
-    const schema = this.repository.create({
-      id: courier.getId(),
-      userId: courier.getUserId(),
-      isOnline: courier.getIsOnline(),
-      currentLat: courier.getCurrentLat(),
-      currentLng: courier.getCurrentLng(),
-    });
+  private toSchema(courier: Courier): CourierSchema {
+    const schema = new CourierSchema();
+    schema.id = courier.getId();
+    schema.userId = courier.getUserId();
+    schema.isOnline = courier.getIsOnline();
+    schema.currentLat = courier.getCurrentLat();
+    schema.currentLng = courier.getCurrentLng();
+    schema.cnh = courier.getCnh() || undefined;
+    schema.vehiclePlate = courier.getVehiclePlate() || undefined;
+    return schema;
+  }
 
+  async save(courier: Courier): Promise<Courier> {
+    const schema = this.toSchema(courier);
     const saved = await this.repository.save(schema);
     return this.toDomain(saved);
   }

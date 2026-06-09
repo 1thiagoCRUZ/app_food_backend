@@ -192,6 +192,47 @@ Regras de checkout, aceite e delivery.
 - **O que faz:** Motoboy aceita fazer a corrida no seu App. (Status muda para IN_TRANSIT).
 - **Quem acessa:** Motoboy.
 
+---
+
+## 5. Entregadores (Motoboys)
+
+### `PUT /couriers/me`
+- **O que faz:** Atualiza ou cria o perfil do entregador (completando o cadastro do usuário base).
+- **Quem acessa:** O entregador (`DELIVERY`).
+- **Body:**
+  ```json
+  {
+    "cnh": "12345678901",
+    "vehiclePlate": "ABC1234"
+  }
+  ```
+
+### `GET /couriers/me`
+- **O que faz:** Retorna o perfil completo do entregador **incluindo o total de entregas (`totalDeliveries`)**.
+- **Quem acessa:** O próprio entregador (`DELIVERY`).
+- **Retorno de Sucesso (200 OK):**
+  ```json
+  {
+    "id": 1,
+    "userId": 3,
+    "isOnline": true,
+    "cnh": "12345678901",
+    "vehiclePlate": "ABC1234",
+    "currentLat": -23.5505,
+    "currentLng": -46.6333,
+    "totalDeliveries": 45,
+    "createdAt": "2023-10-01T10:00:00Z",
+    "updatedAt": "2023-10-02T12:00:00Z"
+  }
+  ```
+
+### `GET /couriers/:id`
+- **O que faz:** Retorna o perfil de um entregador específico (para Lojistas e Admins poderem ver a CNH e placa).
+- **Quem acessa:** Qualquer usuário logado.
+
+### `PATCH /couriers/me/status`
+- **O que faz:** O entregador fica online (pronto para corridas) ou offline.
+
 ### `PATCH /orders/:id/pickup`
 - **O que faz:** Motoboy bipa o QR Code (ou PIN) no balcão da loja e pega a sacola.
 - **Quem acessa:** Motoboy.

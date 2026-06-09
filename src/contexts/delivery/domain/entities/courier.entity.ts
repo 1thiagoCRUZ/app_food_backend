@@ -4,6 +4,8 @@ export interface CourierProps {
     isOnline: boolean;
     currentLat?: number;
     currentLng?: number;
+    cnh?: string;
+    vehiclePlate?: string;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -14,6 +16,8 @@ export class Courier {
     private isOnline: boolean;
     private currentLat?: number;
     private currentLng?: number;
+    private cnh?: string;
+    private vehiclePlate?: string;
     private createdAt: Date;
     private updatedAt: Date;
 
@@ -23,6 +27,8 @@ export class Courier {
         this.isOnline = props.isOnline;
         this.currentLat = props.currentLat;
         this.currentLng = props.currentLng;
+        this.cnh = props.cnh;
+        this.vehiclePlate = props.vehiclePlate;
         this.createdAt = props.createdAt || new Date();
         this.updatedAt = props.updatedAt || new Date();
     }
@@ -36,6 +42,8 @@ export class Courier {
     public getIsOnline(): boolean { return this.isOnline; }
     public getCurrentLat(): number | undefined { return this.currentLat; }
     public getCurrentLng(): number | undefined { return this.currentLng; }
+    public getCnh(): string | undefined { return this.cnh; }
+    public getVehiclePlate(): string | undefined { return this.vehiclePlate; }
     public getCreatedAt(): Date { return this.createdAt; }
     public getUpdatedAt(): Date { return this.updatedAt; }
 
@@ -47,6 +55,12 @@ export class Courier {
     public updateLocation(lat: number, lng: number): void {
         this.currentLat = lat;
         this.currentLng = lng;
+        this.updatedAt = new Date();
+    }
+
+    public updateProfile(cnh: string, vehiclePlate: string): void {
+        this.cnh = cnh;
+        this.vehiclePlate = vehiclePlate;
         this.updatedAt = new Date();
     }
 }

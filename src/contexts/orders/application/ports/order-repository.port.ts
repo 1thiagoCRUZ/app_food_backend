@@ -6,6 +6,7 @@ export interface OrderRepositoryPort {
   updateStatus(id: number, status: string): Promise<void>;
   findAvailableOrders(): Promise<Order[]>;
   findCourierOrders(courierId: number): Promise<Order[]>;
+  countDeliveries(courierId: number): Promise<number>;
 }
 
 export const ORDER_REPOSITORY_PORT = 'ORDER_REPOSITORY_PORT';

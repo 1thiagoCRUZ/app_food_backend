@@ -65,6 +65,10 @@ export class OrderFacade {
     return this.listCourierOrdersUseCase.execute(userId, role);
   }
 
+  async countCourierDeliveries(courierId: number): Promise<number> {
+    return this.orderRepository.countDeliveries(courierId);
+  }
+
   async accept(id: number, userId: number, role: string) {
     return this.acceptOrderUseCase.execute(id, userId, role);
   }
