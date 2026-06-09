@@ -42,6 +42,20 @@ export class OrderController {
     return { message: 'Pedido marcado como pronto para retirada' };
   }
 
+  @Patch(':id/confirm')
+  @HttpCode(HttpStatus.OK)
+  async confirm(@Param('id') id: number, @CurrentUser('userId') userId: number, @CurrentUser('role') role: string) {
+    await this.orderFacade.confirm(id, userId, role);
+    return { message: 'Pedido confirmado pelo restaurante e em preparo' };
+  }
+
+  @Patch(':id/pay')
+  @HttpCode(HttpStatus.OK)
+  async pay(@Param('id') id: number, @CurrentUser('userId') userId: number, @CurrentUser('role') role: string) {
+    await this.orderFacade.pay(id, userId, role);
+    return { message: 'Pagamento aprovado (Simulação)' };
+  }
+
   @Patch(':id/accept')
   @HttpCode(HttpStatus.OK)
   async accept(@Param('id') id: number, @CurrentUser('userId') userId: number, @CurrentUser('role') role: string) {

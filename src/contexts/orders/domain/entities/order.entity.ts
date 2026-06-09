@@ -23,7 +23,7 @@ export interface OrderProps {
     discount?: number;
     couponCode?: string;
     total: number;
-    status: 'PENDING' | 'AWAITING_PAYMENT' | 'PREPARING' | 'READY_FOR_PICKUP' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
+    status: 'PENDING' | 'AWAITING_PAYMENT' | 'PAID' | 'PREPARING' | 'READY_FOR_PICKUP' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
     deliveryVerificationCode?: string;
     pickupVerificationCode?: string;
 }
@@ -46,7 +46,7 @@ export class Order {
     private discount?: number;
     private couponCode?: string;
     private total: number;
-    private status: 'PENDING' | 'AWAITING_PAYMENT' | 'PREPARING' | 'READY_FOR_PICKUP' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
+    private status: 'PENDING' | 'AWAITING_PAYMENT' | 'PAID' | 'PREPARING' | 'READY_FOR_PICKUP' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
     private deliveryVerificationCode?: string;
     private pickupVerificationCode?: string;
 
@@ -99,6 +99,13 @@ export class Order {
     public getPickupVerificationCode(): string | undefined { return this.pickupVerificationCode; }
 
     public approvePayment(): void {
+        this.status = 'PAID';
+    }
+
+    public confirm(): void {
+        if (this.status !== 'PAID' && this.status !== 'PENDING') {
+            throw new Error('O pedido não está aguardando confirmação do restaurante');
+        }
         this.status = 'PREPARING';
     }
 

@@ -11,6 +11,8 @@ import { CreateOrderDto } from '../presentation/dtos/order.dto';
 import { RESTAURANT_REPOSITORY_PORT, type RestaurantRepositoryPort } from '../../restaurants/application/ports/restaurant-repository.port';
 
 import { SetOrderReadyUseCase } from './use-cases/set-order-ready.use-case';
+import { ConfirmOrderUseCase } from './use-cases/confirm-order.use-case';
+import { ApprovePaymentUseCase } from './use-cases/approve-payment.use-case';
 import { ListAvailableOrdersUseCase } from './use-cases/list-available-orders.use-case';
 import { ListCourierOrdersUseCase } from './use-cases/list-courier-orders.use-case';
 import { AcceptOrderUseCase } from './use-cases/accept-order.use-case';
@@ -34,6 +36,8 @@ export class OrderFacade {
     private readonly productRepository: Repository<ProductSchema>,
 
     private readonly setOrderReadyUseCase: SetOrderReadyUseCase,
+    private readonly confirmOrderUseCase: ConfirmOrderUseCase,
+    private readonly approvePaymentUseCase: ApprovePaymentUseCase,
     private readonly listAvailableOrdersUseCase: ListAvailableOrdersUseCase,
     private readonly listCourierOrdersUseCase: ListCourierOrdersUseCase,
     private readonly acceptOrderUseCase: AcceptOrderUseCase,
@@ -43,6 +47,14 @@ export class OrderFacade {
 
   async setReady(id: number, userId: number, role: string) {
     return this.setOrderReadyUseCase.execute(id, userId, role);
+  }
+
+  async confirm(id: number, userId: number, role: string) {
+    return this.confirmOrderUseCase.execute(id, userId, role);
+  }
+
+  async pay(id: number, userId: number, role: string) {
+    return this.approvePaymentUseCase.execute(id, userId, role);
   }
 
   async listAvailable(role: string) {

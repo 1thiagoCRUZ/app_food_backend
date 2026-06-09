@@ -9,6 +9,8 @@ import { OrderController } from './presentation/controllers/order.controller';
 import { RestaurantModule } from '../restaurants/restaurant.module';
 
 import { SetOrderReadyUseCase } from './application/use-cases/set-order-ready.use-case';
+import { ConfirmOrderUseCase } from './application/use-cases/confirm-order.use-case';
+import { ApprovePaymentUseCase } from './application/use-cases/approve-payment.use-case';
 import { ListAvailableOrdersUseCase } from './application/use-cases/list-available-orders.use-case';
 import { ListCourierOrdersUseCase } from './application/use-cases/list-courier-orders.use-case';
 import { AcceptOrderUseCase } from './application/use-cases/accept-order.use-case';
@@ -31,6 +33,8 @@ import { ProductSchema } from '../catalog/infrastructure/database/product.schema
       provide: ORDER_REPOSITORY_PORT,
       useClass: OrderRepository,
     },
+    ConfirmOrderUseCase,
+    ApprovePaymentUseCase,
     SetOrderReadyUseCase,
     ListAvailableOrdersUseCase,
     ListCourierOrdersUseCase,

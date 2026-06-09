@@ -172,6 +172,14 @@ Regras de checkout, aceite e delivery.
   }
   ```
 
+### `PATCH /orders/:id/pay`
+- **O que faz:** Simula o pagamento do pedido (Muda para `PAID`), pulando a integração real com Mercado Pago.
+- **Quem acessa:** Cliente dono do pedido ou Admin/Restaurante.
+
+### `PATCH /orders/:id/confirm`
+- **O que faz:** O restaurante **aceita** o pedido e começa a preparar na cozinha.
+- **Quem acessa:** Dono do restaurante (`RESTAURANT`).
+
 ### `PATCH /orders/:id/ready`
 - **O que faz:** Restaurante avisa que a comida está embalada e chama o Motoboy.
 - **Quem acessa:** Dono do restaurante.
