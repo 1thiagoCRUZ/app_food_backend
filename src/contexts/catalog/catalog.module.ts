@@ -7,6 +7,13 @@ import { CatalogController } from './presentation/controllers/catalog.controller
 import { RestaurantModule } from '../restaurants/restaurant.module';
 import { SharedModule } from '../../shared/shared.module';
 
+import { ProductRepository } from './infrastructure/database/product.repository';
+import { PRODUCT_REPOSITORY_PORT } from './application/ports/product-repository.port';
+import { CreateProductUseCase } from './application/use-cases/create-product.usecase';
+import { UpdateProductUseCase } from './application/use-cases/update-product.usecase';
+import { DeleteProductUseCase } from './application/use-cases/delete-product.usecase';
+import { ListProductsUseCase } from './application/use-cases/list-products.usecase';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([ProductSchema]),
@@ -14,7 +21,17 @@ import { SharedModule } from '../../shared/shared.module';
     SharedModule
   ],
   controllers: [CatalogController],
-  providers: [CatalogFacade],
+  providers: [
+    {
+      provide: PRODUCT_REPOSITORY_PORT,
+      useClass: ProductRepository,
+    },
+    CreateProductUseCase,
+    UpdateProductUseCase,
+    DeleteProductUseCase,
+    ListProductsUseCase,
+    CatalogFacade
+  ],
   exports: [CatalogFacade]
 })
 export class CatalogModule {}

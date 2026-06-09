@@ -4,11 +4,11 @@ export interface ProductProps {
     name: string;
     description: string;
     price: number;
-    originalPrice?: number;
-    image?: string;
-    category?: string;
-    available: boolean;
-    stock: number;
+    image?: string | null;
+    available?: boolean;
+    stock?: number;
+    createdAt?: Date;
+    updatedAt?: Date;
 }
 
 export class Product {
@@ -17,11 +17,11 @@ export class Product {
     private name: string;
     private description: string;
     private price: number;
-    private originalPrice?: number;
-    private image?: string;
-    private category?: string;
+    private image?: string | null;
     private available: boolean;
     private stock: number;
+    private createdAt: Date;
+    private updatedAt: Date;
 
     private constructor(props: ProductProps) {
         this.id = props.id;
@@ -29,25 +29,56 @@ export class Product {
         this.name = props.name;
         this.description = props.description;
         this.price = props.price;
-        this.originalPrice = props.originalPrice;
         this.image = props.image;
-        this.category = props.category;
         this.available = props.available !== undefined ? props.available : true;
         this.stock = props.stock !== undefined ? props.stock : 0;
+        this.createdAt = props.createdAt || new Date();
+        this.updatedAt = props.updatedAt || new Date();
     }
 
     public static create(props: ProductProps): Product {
         return new Product(props);
     }
 
+    public updateName(name: string): void {
+        this.name = name;
+        this.updatedAt = new Date();
+    }
+
+    public updateDescription(description: string): void {
+        this.description = description;
+        this.updatedAt = new Date();
+    }
+
+    public updatePrice(price: number): void {
+        this.price = price;
+        this.updatedAt = new Date();
+    }
+
+    public updateImage(image: string): void {
+        this.image = image;
+        this.updatedAt = new Date();
+    }
+
+    public updateAvailable(available: boolean): void {
+        this.available = available;
+        this.updatedAt = new Date();
+    }
+
+    public updateStock(stock: number): void {
+        this.stock = stock;
+        this.updatedAt = new Date();
+    }
+
+    // Getters
     public getId(): number | undefined { return this.id; }
     public getRestaurantId(): number { return this.restaurantId; }
     public getName(): string { return this.name; }
     public getDescription(): string { return this.description; }
     public getPrice(): number { return this.price; }
-    public getOriginalPrice(): number | undefined { return this.originalPrice; }
-    public getImage(): string | undefined { return this.image; }
-    public getCategory(): string | undefined { return this.category; }
+    public getImage(): string | undefined | null { return this.image; }
     public getAvailable(): boolean { return this.available; }
     public getStock(): number { return this.stock; }
+    public getCreatedAt(): Date { return this.createdAt; }
+    public getUpdatedAt(): Date { return this.updatedAt; }
 }

@@ -1,101 +1,32 @@
-import { Injectable, NotFoundException, ForbiddenException, Inject } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { ProductSchema } from '../infrastructure/database/product.schema';
+import { Injectable } from '@nestjs/common';
 import { CreateProductDto, UpdateProductDto } from '../presentation/dtos/product.dto';
-import { RESTAURANT_REPOSITORY_PORT, type RestaurantRepositoryPort } from '../../restaurants/application/ports/restaurant-repository.port';
-import type { StoragePort } from '../../../shared/ports/storage.port';
-import { STORAGE_PORT } from '../../../shared/ports/storage.port';
+import { CreateProductUseCase } from './use-cases/create-product.usecase';
+import { UpdateProductUseCase } from './use-cases/update-product.usecase';
+import { DeleteProductUseCase } from './use-cases/delete-product.usecase';
+import { ListProductsUseCase } from './use-cases/list-products.usecase';
 
 @Injectable()
 export class CatalogFacade {
   constructor(
-    @InjectRepository(ProductSchema)
-    private readonly productRepository: Repository<ProductSchema>,
-    @Inject(RESTAURANT_REPOSITORY_PORT)
-    private readonly restaurantRepository: RestaurantRepositoryPort,
-    @Inject(STORAGE_PORT)
-    private readonly storage: StoragePort,
+    private readonly createProductUseCase: CreateProductUseCase,
+    private readonly updateProductUseCase: UpdateProductUseCase,
+    private readonly deleteProductUseCase: DeleteProductUseCase,
+    private readonly listProductsUseCase: ListProductsUseCase,
   ) {}
 
   async create(dto: CreateProductDto, userId: number, role: string, file?: Express.Multer.File) {
-    if (role !== 'RESTAURANT') {
-      throw new ForbiddenException('Apenas restaurantes podem criar produtos');
-    }
-    const restaurant = await this.restaurantRepository.findById(dto.restaurantId);
-    if (!restaurant || restaurant.getOwnerId() !== userId) {
-      throw new ForbiddenException('Acesso negado. Você não é o dono deste restaurante');
-    }
-
-    const product = this.productRepository.create({
-      restaurantId: dto.restaurantId,
-      name: dto.name,
-      description: dto.description || '',
-      price: dto.price,
-      image: dto.image,
-      available: dto.available !== undefined ? dto.available : true,
-      stock: dto.stock !== undefined ? dto.stock : 0,
-    });
-    const savedProduct = await this.productRepository.save(product);
-
-    if (file) {
-      const ext = file.originalname.split('.').pop() || 'png';
-      const url = await this.storage.uploadFile(file.buffer, `restaurants/${dto.restaurantId}/products/${savedProduct.id}.${ext}`, file.mimetype);
-      savedProduct.image = url;
-      await this.productRepository.save(savedProduct);
-    }
-
-    return savedProduct;
+    return this.createProductUseCase.execute(dto, userId, role, file);
   }
 
   async list(restaurantId?: number) {
-    if (restaurantId) {
-      return this.productRepository.find({ where: { restaurantId } });
-    }
-    return this.productRepository.find();
+    return this.listProductsUseCase.execute(restaurantId);
   }
 
   async update(id: number, dto: UpdateProductDto, userId: number, role: string, file?: Express.Multer.File) {
-    if (role !== 'RESTAURANT') {
-      throw new ForbiddenException('Apenas restaurantes podem editar produtos');
-    }
-
-    const product = await this.productRepository.findOne({ where: { id } });
-    if (!product) throw new NotFoundException('Produto não encontrado');
-
-    const restaurant = await this.restaurantRepository.findById(product.restaurantId);
-    if (!restaurant || restaurant.getOwnerId() !== userId) {
-      throw new ForbiddenException('Acesso negado. Você não é o dono deste restaurante');
-    }
-
-    if (dto.name) product.name = dto.name;
-    if (dto.description) product.description = dto.description;
-    if (dto.price !== undefined) product.price = dto.price;
-    if (dto.available !== undefined) product.available = dto.available;
-    if (dto.stock !== undefined) product.stock = dto.stock;
-
-    if (file) {
-      const ext = file.originalname.split('.').pop() || 'png';
-      const url = await this.storage.uploadFile(file.buffer, `restaurants/${product.restaurantId}/products/${product.id}.${ext}`, file.mimetype);
-      product.image = url;
-    }
-
-    return this.productRepository.save(product);
+    return this.updateProductUseCase.execute(id, dto, userId, role, file);
   }
 
   async delete(id: number, userId: number, role: string) {
-    if (role !== 'RESTAURANT') {
-      throw new ForbiddenException('Apenas restaurantes podem deletar produtos');
-    }
-
-    const product = await this.productRepository.findOne({ where: { id } });
-    if (!product) throw new NotFoundException('Produto não encontrado');
-
-    const restaurant = await this.restaurantRepository.findById(product.restaurantId);
-    if (!restaurant || restaurant.getOwnerId() !== userId) {
-      throw new ForbiddenException('Acesso negado. Você não é o dono deste restaurante');
-    }
-
-    await this.productRepository.delete(id);
+    return this.deleteProductUseCase.execute(id, userId, role);
   }
 }

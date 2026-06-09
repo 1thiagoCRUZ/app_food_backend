@@ -21,7 +21,7 @@ export class CatalogController {
   @UseInterceptors(FileInterceptor('image'))
   async create(@CurrentUser('userId') userId: number, @CurrentUser('role') role: string, @Body() dto: CreateProductDto, @UploadedFile() file?: Express.Multer.File) {
     const product = await this.catalogFacade.create(dto, userId, role, file);
-    return { message: 'Produto criado com sucesso', id: product.id };
+    return { message: 'Produto criado com sucesso', id: product.getId() };
   }
 
   @Get()
