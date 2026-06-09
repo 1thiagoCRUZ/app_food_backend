@@ -18,7 +18,7 @@ export class ToggleOnlineStatusUseCase {
 
     if (!isOnline) {
       const activeOrders = await this.orderRepository.findCourierOrders(userId);
-      const hasActiveOrders = activeOrders.some(o => o.status !== 'DELIVERED' && o.status !== 'CANCELLED');
+      const hasActiveOrders = activeOrders.some(o => o.getStatus() !== 'DELIVERED' && o.getStatus() !== 'CANCELLED');
       if (hasActiveOrders) {
         throw new BadRequestException('You cannot go offline while having active deliveries');
       }
