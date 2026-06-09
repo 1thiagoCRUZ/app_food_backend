@@ -30,6 +30,12 @@ export class CatalogController {
     return this.catalogFacade.list(restaurantId);
   }
 
+  @Get(':id')
+  @ApiOperation({ summary: 'Buscar um produto pelo ID' })
+  async getById(@Param('id') id: number) {
+    return this.catalogFacade.getById(id);
+  }
+
   @Put(':id')
   @ApiConsumes('multipart/form-data')
   @ApiOperation({ summary: 'Atualizar um produto existente' })

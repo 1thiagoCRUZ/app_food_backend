@@ -13,6 +13,7 @@ import { CreateProductUseCase } from './application/use-cases/create-product.use
 import { UpdateProductUseCase } from './application/use-cases/update-product.usecase';
 import { DeleteProductUseCase } from './application/use-cases/delete-product.usecase';
 import { ListProductsUseCase } from './application/use-cases/list-products.usecase';
+import { GetProductUseCase } from './application/use-cases/get-product.usecase';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { ListProductsUseCase } from './application/use-cases/list-products.useca
     UpdateProductUseCase,
     DeleteProductUseCase,
     ListProductsUseCase,
+    GetProductUseCase,
     CatalogFacade
   ],
   exports: [CatalogFacade]
