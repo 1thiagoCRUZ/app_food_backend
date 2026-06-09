@@ -36,7 +36,7 @@ export class RegisterUserDto {
   @IsOptional()
   photo?: any;
 
-  @ApiProperty({ example: 'CUSTOMER', enum: ['CUSTOMER', 'RESTAURANT', 'DELIVERY'], required: false, description: 'Papel do usuário', default: 'CUSTOMER' })
+  @ApiProperty({ example: 'CUSTOMER', enum: ['CUSTOMER', 'RESTAURANT', 'DELIVERY', 'COURIER'], required: false, description: 'Papel do usuário', default: 'CUSTOMER' })
   @IsString()
   @IsOptional()
   role?: string;

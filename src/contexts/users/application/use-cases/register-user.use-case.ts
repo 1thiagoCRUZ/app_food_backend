@@ -55,7 +55,7 @@ export class RegisterUserUseCase {
       await this.userRepository.save(savedUser);
     }
 
-    if (savedUser.getRole() === 'DELIVERY') {
+    if (savedUser.getRole() === 'DELIVERY' || savedUser.getRole() === 'COURIER') {
       await this.courierFacade.createProfile(savedUser.getId()!, dto.cnh, dto.vehiclePlate);
     }
 
