@@ -26,6 +26,7 @@ export interface OrderProps {
     status: 'PENDING' | 'AWAITING_PAYMENT' | 'PAID' | 'PREPARING' | 'READY_FOR_PICKUP' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
     deliveryVerificationCode?: string;
     pickupVerificationCode?: string;
+    createdAt?: Date;
 }
 
 export class Order {
@@ -49,6 +50,7 @@ export class Order {
     private status: 'PENDING' | 'AWAITING_PAYMENT' | 'PAID' | 'PREPARING' | 'READY_FOR_PICKUP' | 'IN_TRANSIT' | 'DELIVERED' | 'CANCELLED';
     private deliveryVerificationCode?: string;
     private pickupVerificationCode?: string;
+    private createdAt?: Date;
 
     private constructor(props: OrderProps) {
         this.id = props.id;
@@ -71,6 +73,7 @@ export class Order {
         this.status = props.status;
         this.deliveryVerificationCode = props.deliveryVerificationCode;
         this.pickupVerificationCode = props.pickupVerificationCode;
+        this.createdAt = props.createdAt;
     }
 
     public static create(props: OrderProps): Order {
@@ -97,6 +100,7 @@ export class Order {
     public getStatus(): string { return this.status; }
     public getDeliveryVerificationCode(): string | undefined { return this.deliveryVerificationCode; }
     public getPickupVerificationCode(): string | undefined { return this.pickupVerificationCode; }
+    public getCreatedAt(): Date | undefined { return this.createdAt; }
 
     public approvePayment(): void {
         this.status = 'PAID';

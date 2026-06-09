@@ -34,6 +34,7 @@ export class OrderRepository implements OrderRepositoryPort {
       status: schema.status as any,
       deliveryVerificationCode: schema.deliveryVerificationCode || undefined,
       pickupVerificationCode: schema.pickupVerificationCode || undefined,
+      createdAt: schema.createdAt,
       items: schema.items ? schema.items.map(item => ({
         productId: item.productId,
         name: item.name,

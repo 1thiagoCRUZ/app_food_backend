@@ -18,6 +18,7 @@ import { ListCourierOrdersUseCase } from './use-cases/list-courier-orders.use-ca
 import { AcceptOrderUseCase } from './use-cases/accept-order.use-case';
 import { PickupOrderUseCase } from './use-cases/pickup-order.use-case';
 import { DeliverOrderUseCase } from './use-cases/deliver-order.use-case';
+import { GetCourierEarningsUseCase } from './use-cases/get-courier-earnings.use-case';
 
 @Injectable()
 export class OrderFacade {
@@ -43,6 +44,7 @@ export class OrderFacade {
     private readonly acceptOrderUseCase: AcceptOrderUseCase,
     private readonly pickupOrderUseCase: PickupOrderUseCase,
     private readonly deliverOrderUseCase: DeliverOrderUseCase,
+    private readonly getCourierEarningsUseCase: GetCourierEarningsUseCase,
   ) {}
 
   async setReady(id: number, userId: number, role: string) {
@@ -63,6 +65,10 @@ export class OrderFacade {
 
   async listCourierOrders(userId: number, role: string) {
     return this.listCourierOrdersUseCase.execute(userId, role);
+  }
+
+  async getCourierEarnings(userId: number, role: string) {
+    return this.getCourierEarningsUseCase.execute(userId, role);
   }
 
   async countCourierDeliveries(courierId: number): Promise<number> {

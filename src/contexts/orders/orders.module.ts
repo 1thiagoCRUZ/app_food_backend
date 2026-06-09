@@ -17,6 +17,8 @@ import { AcceptOrderUseCase } from './application/use-cases/accept-order.use-cas
 import { PickupOrderUseCase } from './application/use-cases/pickup-order.use-case';
 import { DeliverOrderUseCase } from './application/use-cases/deliver-order.use-case';
 
+import { GetCourierEarningsUseCase } from './application/use-cases/get-courier-earnings.use-case';
+
 import { UserSchema } from '../users/infrastructure/database/user.schema';
 import { AdressSchema } from '../users/infrastructure/database/address.schema';
 import { CouponSchema } from '../restaurants/infrastructure/database/coupon.schema';
@@ -41,6 +43,7 @@ import { ProductSchema } from '../catalog/infrastructure/database/product.schema
     AcceptOrderUseCase,
     PickupOrderUseCase,
     DeliverOrderUseCase,
+    GetCourierEarningsUseCase,
     OrderFacade,
   ],
   exports: [

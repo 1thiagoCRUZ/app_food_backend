@@ -35,6 +35,11 @@ export class OrderController {
     return this.orderFacade.listCourierOrders(userId, role);
   }
 
+  @Get('courier/my/earnings')
+  async getCourierEarnings(@CurrentUser('userId') userId: number, @CurrentUser('role') role: string) {
+    return this.orderFacade.getCourierEarnings(userId, role);
+  }
+
   @Patch(':id/ready')
   @HttpCode(HttpStatus.OK)
   async setReady(@Param('id') id: number, @CurrentUser('userId') userId: number, @CurrentUser('role') role: string) {
