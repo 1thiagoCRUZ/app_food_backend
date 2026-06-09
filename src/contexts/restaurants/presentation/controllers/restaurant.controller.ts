@@ -60,7 +60,7 @@ export class RestaurantController {
     @Get('my')
     @HttpCode(HttpStatus.OK)
     async getMy(@Request() req) {
-        return this.restaurantFacade.getMyRestaurant(req.user.sub);
+        return this.restaurantFacade.getMyRestaurant(req.user.userId || req.user.sub);
     }
 
     @Patch(':id/status')
