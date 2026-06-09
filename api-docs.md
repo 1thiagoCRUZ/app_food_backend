@@ -1,6 +1,6 @@
-# 📚 App Food - Documentação da API
+# 📚 App Food - Documentação Completa da API
 
-Esta documentação detalha todas as rotas disponíveis na aplicação, seus propósitos e quem tem permissão de acessá-las. A API segue os princípios RESTful e utiliza JWT para autenticação.
+Esta documentação detalha **absolutamente todos** os métodos disponíveis na aplicação, seus propósitos, níveis de permissão exigidos e os dados (Payloads) necessários para cada requisição. A API segue os princípios RESTful e utiliza JWT para autenticação.
 
 ## 🔐 Níveis de Acesso (Roles)
 - **`CUSTOMER`**: Cliente final (quem pede comida).
@@ -8,117 +8,212 @@ Esta documentação detalha todas as rotas disponíveis na aplicação, seus pro
 - **`COURIER`**: Entregador (motoboy, quem faz o delivery).
 - **`ADMIN`**: Administrador da plataforma (suporte e manutenção).
 
-> [!NOTE]
-> Todas as rotas (exceto as de registro, login e webhooks) exigem que o cabeçalho `Authorization: Bearer <TOKEN>` seja enviado.
+> [!IMPORTANT]
+> Todas as rotas (exceto `/users/register`, `/users/login`, e `/payments/webhook`) exigem o cabeçalho de autenticação:
+> `Authorization: Bearer <SEU_TOKEN_JWT>`
 
-## 🛡️ Tratamento de Erros e Segurança
-A API segue padrões de segurança rigorosos para ambientes de produção:
-- **Erros de Validação (400 Bad Request)**: Retornam de forma nativa e em inglês o motivo exato (ex: `["cpf must be a valid CPF"]`), ideal para o App/Front-end tratar e exibir para o usuário.
-- **Erros Internos (500 Internal Server Error)**: Falhas de banco de dados, falhas de conexão com AWS S3, ou exceções não tratadas são **mascaradas** de forma proposital. A API sempre responderá com uma mensagem genérica `{"message": "Internal server error"}` para evitar vazamento de arquitetura ou dados sensíveis.
+## 🛡️ Tratamento de Erros
+- **Erros de Validação (400 Bad Request)**: Retornam de forma nativa e em inglês o motivo exato.
+  ```json
+  { "statusCode": 400, "message": ["cpf must be a valid CPF"], "error": "Bad Request" }
+  ```
+- **Erros Internos (500 Internal Server Error)**: Falhas graves são mascaradas como `{"message": "Internal server error"}` para segurança.
 
 ---
 
 ## 🧑‍💼 Módulo de Usuários (`/users`)
-Gerencia o ciclo de vida, autenticação e endereços de qualquer pessoa no sistema (Cliente, Entregador, Restaurante ou Admin).
+Gerencia o ciclo de vida, autenticação e endereços de clientes, entregadores e donos de restaurantes.
 
-| Método | Rota | Descrição | Quem Usa? |
-| :--- | :--- | :--- | :--- |
-| **POST** | `/users/register` | Cria uma nova conta no sistema. Aceita upload binário de foto (multipart/form-data). | Público |
-| **POST** | `/users/login` | Autentica um usuário usando Email e Senha. Retorna o Token JWT. | Público |
-| **GET** | `/users` | Lista todos os usuários cadastrados na plataforma. | `ADMIN` |
-| **GET** | `/users/me` | Retorna o perfil completo do usuário que está logado (usando o Token). | Qualquer Logado |
-| **GET** | `/users/:id` | Retorna o perfil de um usuário específico por ID (inclui endereços). | Qualquer Logado |
-| **PUT** | `/users/:id` | Atualiza dados do perfil (Nome, Telefone, foto via multipart/form-data). | Próprio Usuário |
-| **DELETE** | `/users/:id` | Deleta permanentemente a conta de um usuário. | Próprio ou `ADMIN` |
-| **POST** | `/users/me/addresses` | Adiciona um novo endereço de entrega na conta do cliente logado. | `CUSTOMER` |
-| **GET** | `/users/me/addresses` | Lista os endereços salvos do cliente logado. | `CUSTOMER` |
+### `POST /users/register`
+- **O que faz:** Cria uma conta nova no sistema.
+- **Quem acessa:** Público (Sem token).
+- **Como funciona:** Recebe os dados de formulário. Cria o usuário e, se houver foto, faz o upload para a Amazon S3.
+- **Payload (`multipart/form-data`):**
+  - `name` (string, obrigatório)
+  - `email` (string, obrigatório)
+  - `password` (string, mín 8 chars)
+  - `cpf` (string, formato XXX.XXX.XXX-XX)
+  - `phone` (string, 10 ou 11 dígitos, opcional)
+  - `role` (string, CUSTOMER, RESTAURANT ou COURIER)
+  - `photo` (Arquivo Binário, Imagem, opcional)
+
+### `POST /users/login`
+- **O que faz:** Autentica o usuário e devolve o Token JWT.
+- **Quem acessa:** Público.
+- **Payload (`application/json`):**
+  ```json
+  { "email": "joao@teste.com", "password": "senha" }
+  ```
+
+### `GET /users/me`
+- **O que faz:** Retorna todos os dados da pessoa logada.
+- **Quem acessa:** Qualquer usuário logado.
+- **Payload:** Nenhum (Lê pelo Token JWT).
+
+### `PUT /users/:id`
+- **O que faz:** Atualiza os dados da conta (ex: trocar telefone, atualizar foto).
+- **Quem acessa:** Próprio Usuário logado.
+- **Payload (`multipart/form-data`):**
+  - Qualquer campo opcional (`name`, `phone`, `photo`).
+
+### `POST /users/me/addresses`
+- **O que faz:** Salva um endereço de entrega para o cliente.
+- **Quem acessa:** `CUSTOMER`.
+- **Payload (`application/json`):**
+  ```json
+  {
+    "street": "Rua das Flores, 123",
+    "city": "São Paulo",
+    "state": "SP",
+    "zipCode": "01001-000",
+    "isDefault": true,
+    "latitude": -23.550520,
+    "longitude": -46.633308
+  }
+  ```
 
 ---
 
 ## 🏪 Módulo de Restaurantes (`/restaurants`)
-Gerencia os estabelecimentos parceiros e o status operacional deles.
+Gerencia os estabelecimentos parceiros.
 
-| Método | Rota | Descrição | Quem Usa? |
-| :--- | :--- | :--- | :--- |
-| **POST** | `/restaurants` | Cadastra um novo Restaurante atrelando-o ao usuário logado (Dono). | `RESTAURANT` |
-| **GET** | `/restaurants` | Lista restaurantes disponíveis (Vitrine do App). Pode filtrar por abertos. | `CUSTOMER` |
-| **GET** | `/restaurants/my` | Retorna o painel do restaurante pertencente ao dono logado. | `RESTAURANT` |
-| **PUT** | `/restaurants/:id` | Atualiza dados do restaurante (Nome, CNPJ) e Foto (multipart/form-data). | Dono ou `ADMIN` |
-| **DELETE** | `/restaurants/:id` | Remove o restaurante da plataforma. | Dono ou `ADMIN` |
-| **PATCH** | `/restaurants/:id/status` | Abre ou fecha o restaurante (`isOpen: boolean`). | Dono |
-| **POST** | `/restaurants/:id/addresses`| Adiciona ou define o endereço físico do restaurante. | Dono |
-| **GET** | `/restaurants/:id/addresses` | Lista endereços/filiais do restaurante. | Qualquer Logado |
+### `POST /restaurants`
+- **O que faz:** O usuário logado (Dono) cadastra seu próprio restaurante.
+- **Quem acessa:** `RESTAURANT`.
+- **Payload (`multipart/form-data`):**
+  - `name` (string, nome da loja)
+  - `cnpj` (string)
+  - `isOpen` (boolean)
+  - `photo` (Arquivo Binário, logo do restaurante, opcional)
+
+### `GET /restaurants`
+- **O que faz:** Retorna a vitrine de restaurantes pro cliente escolher onde pedir.
+- **Quem acessa:** Qualquer logado.
+
+### `GET /restaurants/my`
+- **O que faz:** Carrega os dados do restaurante atrelado ao Dono que está logado.
+- **Quem acessa:** `RESTAURANT`.
+
+### `PATCH /restaurants/:id/status`
+- **O que faz:** Botão de "Abrir / Fechar" o restaurante no fim do expediente.
+- **Quem acessa:** Dono do restaurante.
+- **Payload (`application/json`):**
+  ```json
+  { "isOpen": true }
+  ```
 
 ---
 
 ## 🍔 Módulo de Catálogo (`/catalog`)
-Gerencia o cardápio e o estoque de produtos dos restaurantes.
+Gerencia o cardápio (produtos).
 
-| Método | Rota | Descrição | Quem Usa? |
-| :--- | :--- | :--- | :--- |
-| **POST** | `/catalog` | Cria um novo produto (ex: Hambúrguer, Bebida) para o restaurante. Aceita foto nativa (multipart). | `RESTAURANT` |
-| **GET** | `/catalog` | Lista produtos. Pode passar `?restaurantId=1` para listar o cardápio. | Público |
-| **PUT** | `/catalog/:id` | Atualiza preço, foto, nome, disponibilidade e estoque do produto. | Dono do Restaurante |
-| **DELETE** | `/catalog/:id` | Remove um produto do cardápio. | Dono do Restaurante |
+### `POST /catalog`
+- **O que faz:** Cria um novo produto no cardápio.
+- **Quem acessa:** Dono do Restaurante (`RESTAURANT`).
+- **Payload (`multipart/form-data`):**
+  - `restaurantId` (número, obrigatório)
+  - `name` (string, ex: Pizza Calabresa)
+  - `price` (número)
+  - `description` (string, opcional)
+  - `stock` (número, opcional)
+  - `available` (boolean)
+  - `image` (Arquivo Binário, Foto da comida, opcional)
+
+### `GET /catalog`
+- **O que faz:** Lista produtos de um restaurante (usado no App do Cliente).
+- **Como funciona:** Usar Query param `?restaurantId=1`.
+
+### `PUT /catalog/:id`
+- **O que faz:** Edita nome, preço ou atualiza a foto do produto.
+- **Quem acessa:** Dono.
+- **Payload (`multipart/form-data`):** Mesmos campos do POST (tudo opcional).
 
 ---
 
 ## 🎟️ Módulo de Cupons (`/coupons`)
-Gerencia descontos e campanhas promocionais atreladas a restaurantes.
+Descontos aplicáveis a pedidos.
 
-| Método | Rota | Descrição | Quem Usa? |
-| :--- | :--- | :--- | :--- |
-| **POST** | `/coupons` | Cria um novo cupom de desconto (fixo ou porcentagem). | `RESTAURANT` |
-| **GET** | `/coupons` | Lista cupons disponíveis de um restaurante. | `CUSTOMER` |
-| **PUT** | `/coupons/:id` | Atualiza regras do cupom (validade, valor). | Dono do Restaurante |
-| **DELETE** | `/coupons/:id` | Desativa ou deleta o cupom. | Dono do Restaurante |
+### `POST /coupons`
+- **O que faz:** Cria um novo cupom.
+- **Quem acessa:** Dono do Restaurante.
+- **Payload (`application/json`):**
+  ```json
+  {
+    "restaurantId": 1,
+    "code": "BEMVINDO10",
+    "type": "percent", 
+    "value": "10",
+    "min": 50,
+    "limit": 100,
+    "isActive": true,
+    "expiresAt": "2026-12-31T23:59:59.000Z"
+  }
+  ```
+  *(Obs: type pode ser `percent`, `fixed` ou `shipping`)*
 
 ---
 
 ## 📦 Módulo de Pedidos (`/orders`)
-Coração do sistema. Conecta o Cliente, o Restaurante e o Entregador, aplicando regras de estoque, fraude e faturamento.
+Regras de checkout, aceite e delivery.
 
-| Método | Rota | Descrição | Quem Usa? |
-| :--- | :--- | :--- | :--- |
-| **POST** | `/orders` | Cria o pedido, recalcula preços com base no banco, debita o estoque e gera códigos de verificação (Pickup/Delivery). | `CUSTOMER` |
-| **GET** | `/orders` | Lista os meus pedidos (Se for Cliente mostra os que eu pedi, se for dono mostra os que meu restaurante recebeu). | `CUSTOMER` / `RESTAURANT` |
-| **GET** | `/orders/:id` | Retorna todos os detalhes do pedido, itens e endereços. | Envolvidos no Pedido |
-| **PATCH** | `/orders/:id/cancel` | Cancela o pedido (Apenas se o restaurante ainda não despachou) e devolve produtos pro estoque. | `CUSTOMER` / `RESTAURANT` |
-| **GET** | `/orders/available` | Radar do Entregador: Lista pedidos prontos aguardando motoboy. | `COURIER` |
-| **GET** | `/orders/courier/my` | Lista o histórico de entregas do motoboy logado. | `COURIER` |
-| **PATCH** | `/orders/:id/ready` | Restaurante marca que a comida está pronta na bancada. | `RESTAURANT` |
-| **PATCH** | `/orders/:id/accept` | Motoboy aceita a corrida no App (Muda status para IN_TRANSIT). | `COURIER` |
-| **PATCH** | `/orders/:id/pickup` | Motoboy informa o PIN do garçom e retira a sacola. | `COURIER` |
-| **PATCH** | `/orders/:id/deliver` | Motoboy informa o PIN do Cliente e finaliza a entrega na porta. | `COURIER` |
+### `POST /orders`
+- **O que faz:** Cria um pedido novo. Baixa estoque, calcula cupons, e trava o pedido em ABERTO.
+- **Quem acessa:** Cliente (`CUSTOMER`).
+- **Payload (`application/json`):**
+  ```json
+  {
+    "restaurantId": 1,
+    "deliveryAddressId": 2,
+    "couponCode": "BEMVINDO10",
+    "paymentMethod": "PIX",
+    "items": [
+      { "productId": 10, "name": "Pizza Calabresa", "price": 49.90, "quantity": 2 }
+    ]
+  }
+  ```
 
----
+### `PATCH /orders/:id/ready`
+- **O que faz:** Restaurante avisa que a comida está embalada e chama o Motoboy.
+- **Quem acessa:** Dono do restaurante.
 
-## 🛵 Módulo de Delivery (`/couriers`)
-Gerencia especificamente os metadados dos Entregadores.
+### `GET /orders/available`
+- **O que faz:** Radar do Motoboy. Lista pedidos que estão prontos no balcão aguardando retirada.
+- **Quem acessa:** Motoboy (`COURIER`).
 
-| Método | Rota | Descrição | Quem Usa? |
-| :--- | :--- | :--- | :--- |
-| **PATCH** | `/couriers/me/status` | Motoboy fica Online para receber chamados ou Offline. | `COURIER` |
-| **GET** | `/couriers` | Lista entregadores e o status operacional deles. | `ADMIN` / `RESTAURANT` |
+### `PATCH /orders/:id/accept`
+- **O que faz:** Motoboy aceita fazer a corrida no seu App. (Status muda para IN_TRANSIT).
+- **Quem acessa:** Motoboy.
+
+### `PATCH /orders/:id/pickup`
+- **O que faz:** Motoboy bipa o QR Code (ou PIN) no balcão da loja e pega a sacola.
+- **Quem acessa:** Motoboy.
+
+### `PATCH /orders/:id/deliver`
+- **O que faz:** Motoboy chega na casa do cliente, cliente passa o PIN de segurança, e a entrega é finalizada.
+- **Quem acessa:** Motoboy.
 
 ---
 
 ## 💳 Módulo de Pagamentos (`/payments`)
-Integração com gateways externos de pagamento (Stripe/MercadoPago).
 
-| Método | Rota | Descrição | Quem Usa? |
-| :--- | :--- | :--- | :--- |
-| **POST** | `/payments/checkout` | Inicia fluxo de pagamento do pedido e devolve URL do Gateway. | `CUSTOMER` |
-| **POST** | `/payments/webhook` | Rota cega (secreta) para a plataforma de pagamento confirmar se o cartão passou. | Plataforma Externa |
+### `POST /payments/checkout`
+- **O que faz:** Envia o Pedido para a API do Mercado Pago/Stripe para gerar o QRCode PIX ou link de cartão.
+- **Quem acessa:** Cliente.
+- **Payload (`application/json`):**
+  ```json
+  { "orderId": 123, "method": "PIX", "customerEmail": "cliente@teste.com" }
+  ```
+
+### `POST /payments/webhook`
+- **O que faz:** Rota secreta onde o Mercado Pago avisa nosso backend que o cliente pagou a conta.
+- **Quem acessa:** Mercado Pago (Rota cega sem JWT).
 
 ---
 
-## 📡 Módulo de Comunicação (WebSocket)
-Conexões de tempo real na rota base `ws://localhost:3000`.
+## 📡 Comunicação em Tempo Real (WebSocket)
+Rota: `ws://localhost:3000`
 
-| Evento | Direção | Descrição | Quem Usa? |
-| :--- | :--- | :--- | :--- |
-| `joinOrderRoom` | Cliente ➡️ Servidor | Informa o servidor em qual pedido você está focado. | Cliente / Entregador |
-| `joinedRoom` | Servidor ➡️ Cliente | Confirma a conexão na sala segura do pedido. | Servidor |
-| `sendLocation` | Entregador ➡️ Servidor | App do motoboy dispara as coordenadas de GPS. | `COURIER` |
-| `locationUpdate` | Servidor ➡️ Sala | Servidor rebate o GPS do motoboy para mostrar no mapa do App do Cliente. | Cliente |
+### Eventos (Socket.io)
+- **Emitir `joinOrderRoom`**: O App (Cliente ou Entregador) envia `{"orderId": 123}` para se inscrever no chat GPS daquele pedido.
+- **Emitir `sendLocation`**: O Celular do Motoboy envia `{"orderId": 123, "latitude": -23.5, "longitude": -46.6}` a cada 5 segundos.
+- **Receber `locationUpdate`**: O App do Cliente escuta este evento para mover o ícone da moto ao vivo no mapa do celular.
