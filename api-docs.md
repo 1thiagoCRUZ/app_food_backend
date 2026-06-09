@@ -192,6 +192,21 @@ Regras de checkout, aceite e delivery.
 - **O que faz:** Motoboy aceita fazer a corrida no seu App. (Status muda para IN_TRANSIT).
 - **Quem acessa:** Motoboy.
 
+### 🔄 Fluxo de Vida de um Pedido (Passo a Passo)
+Para testar ou integrar o ciclo completo de um pedido, siga as requisições na ordem abaixo, garantindo que você utilize o Token (via cabeçalho `Authorization: Bearer <TOKEN>`) do usuário que tem o papel (`role`) correto em cada etapa:
+
+1. **Cliente Cria e Paga**
+   - `POST /orders` (Token de `CUSTOMER`) ➡️ Nasce como `AWAITING_PAYMENT`.
+   - `PATCH /orders/:id/pay` (Token de `CUSTOMER`) ➡️ Muda para `PAID`.
+2. **Loja Prepara e Libera**
+   - `PATCH /orders/:id/confirm` (Token de `RESTAURANT`) ➡️ Loja aceita. Muda para `PREPARING`.
+   - `PATCH /orders/:id/ready` (Token de `RESTAURANT`) ➡️ Loja coloca no balcão. Muda para `READY_FOR_PICKUP`.
+3. **Entregador Aceita, Retira e Entrega**
+   - `GET /orders/available` (Token de `COURIER`) ➡️ O entregador vê o pedido que acabou de ficar pronto.
+   - `PATCH /orders/:id/accept` (Token de `COURIER`) ➡️ Entregador vincula seu ID à corrida.
+   - `PATCH /orders/:id/pickup` (Token de `COURIER`) enviando `{ "code": "xxxx" }` no body ➡️ Entregador pega no balcão. Muda para `IN_TRANSIT`.
+   - `PATCH /orders/:id/deliver` (Token de `COURIER`) enviando `{ "code": "yyyy" }` no body ➡️ Entregador finaliza no cliente. Muda para `DELIVERED`.
+
 ---
 
 ## 5. Entregadores (Motoboys)
