@@ -1,8 +1,9 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 @Entity('products')
 export class ProductSchema {
   @PrimaryGeneratedColumn()
   id: number;
+  @Index()
   @Column()
   restaurantId: number; 
   @Column()

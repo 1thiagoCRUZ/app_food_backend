@@ -1,14 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException, Inject, BadRequestException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { OrderSchema } from '../infrastructure/database/order.schema';
-import { OrderItemSchema } from '../infrastructure/database/order-item.schema';
-import { UserSchema } from '../../users/infrastructure/database/user.schema';
-import { AdressSchema } from '../../users/infrastructure/database/address.schema';
-import { CouponSchema } from '../../restaurants/infrastructure/database/coupon.schema';
-import { ProductSchema } from '../../catalog/infrastructure/database/product.schema';
 import { CreateOrderDto } from '../presentation/dtos/order.dto';
-import { RESTAURANT_REPOSITORY_PORT, type RestaurantRepositoryPort } from '../../restaurants/application/ports/restaurant-repository.port';
 
 import { SetOrderReadyUseCase } from './use-cases/set-order-ready.use-case';
 import { ConfirmOrderUseCase } from './use-cases/confirm-order.use-case';
@@ -20,21 +14,17 @@ import { PickupOrderUseCase } from './use-cases/pickup-order.use-case';
 import { DeliverOrderUseCase } from './use-cases/deliver-order.use-case';
 import { GetCourierEarningsUseCase } from './use-cases/get-courier-earnings.use-case';
 
+import { CreateOrderUseCase } from './use-cases/create-order.use-case';
+import { ListUserOrdersUseCase } from './use-cases/list-user-orders.use-case';
+import { ListRestaurantOrdersUseCase } from './use-cases/list-restaurant-orders.use-case';
+import { GetOrderUseCase } from './use-cases/get-order.use-case';
+import { CancelOrderUseCase } from './use-cases/cancel-order.use-case';
+
 @Injectable()
 export class OrderFacade {
   constructor(
     @InjectRepository(OrderSchema)
     private readonly orderRepository: Repository<OrderSchema>,
-    @Inject(RESTAURANT_REPOSITORY_PORT)
-    private readonly restaurantRepository: RestaurantRepositoryPort,
-    @InjectRepository(UserSchema)
-    private readonly userRepository: Repository<UserSchema>,
-    @InjectRepository(AdressSchema)
-    private readonly addressRepository: Repository<AdressSchema>,
-    @InjectRepository(CouponSchema)
-    private readonly couponRepository: Repository<CouponSchema>,
-    @InjectRepository(ProductSchema)
-    private readonly productRepository: Repository<ProductSchema>,
 
     private readonly setOrderReadyUseCase: SetOrderReadyUseCase,
     private readonly confirmOrderUseCase: ConfirmOrderUseCase,
@@ -45,7 +35,33 @@ export class OrderFacade {
     private readonly pickupOrderUseCase: PickupOrderUseCase,
     private readonly deliverOrderUseCase: DeliverOrderUseCase,
     private readonly getCourierEarningsUseCase: GetCourierEarningsUseCase,
+
+    private readonly createOrderUseCase: CreateOrderUseCase,
+    private readonly listUserOrdersUseCase: ListUserOrdersUseCase,
+    private readonly listRestaurantOrdersUseCase: ListRestaurantOrdersUseCase,
+    private readonly getOrderUseCase: GetOrderUseCase,
+    private readonly cancelOrderUseCase: CancelOrderUseCase,
   ) {}
+
+  async create(userId: number, dto: CreateOrderDto) {
+    return this.createOrderUseCase.execute(userId, dto);
+  }
+
+  async listByUser(userId: number) {
+    return this.listUserOrdersUseCase.execute(userId);
+  }
+
+  async listByRestaurant(restaurantId: number, userId: number) {
+    return this.listRestaurantOrdersUseCase.execute(restaurantId, userId);
+  }
+
+  async getOne(id: number, userId: number) {
+    return this.getOrderUseCase.execute(id, userId);
+  }
+
+  async cancel(id: number, userId: number, role: string) {
+    return this.cancelOrderUseCase.execute(id, userId, role);
+  }
 
   async setReady(id: number, userId: number, role: string) {
     return this.setOrderReadyUseCase.execute(id, userId, role);
@@ -85,158 +101,5 @@ export class OrderFacade {
 
   async deliver(id: number, userId: number, role: string, code: string) {
     return this.deliverOrderUseCase.execute(id, userId, role, code);
-  }
-
-  async create(userId: number, dto: CreateOrderDto) {
-    let total = 0;
-    const items: OrderItemSchema[] = [];
-
-    for (const item of dto.items) {
-      const product = await this.productRepository.findOne({ where: { id: item.productId } });
-      if (!product) throw new NotFoundException(`Product ID ${item.productId} not found`);
-      if (product.restaurantId !== dto.restaurantId) throw new BadRequestException(`Product ID ${item.productId} does not belong to this restaurant`);
-      if (!product.available) throw new BadRequestException(`Product ${product.name} is currently unavailable`);
-      if (product.stock < item.quantity) throw new BadRequestException(`Insufficient stock for product ${product.name}. Available: ${product.stock}`);
-
-      // Deduct stock
-      product.stock -= item.quantity;
-      await this.productRepository.save(product);
-
-      // Force price from DB
-      total += Number(product.price) * item.quantity;
-      
-      const orderItem = new OrderItemSchema();
-      orderItem.productId = item.productId;
-      orderItem.name = product.name; // Get name from DB
-      orderItem.price = product.price; // Get price from DB
-      orderItem.quantity = item.quantity;
-      items.push(orderItem);
-    }
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User not found');
-
-    const address = await this.addressRepository.findOne({ where: { id: dto.deliveryAddressId, userId } });
-    if (!address) throw new NotFoundException('Delivery address not found');
-
-    let subtotal = total;
-    let discount = 0;
-
-    if (dto.couponCode) {
-      const coupon = await this.couponRepository.findOne({ 
-        where: { code: dto.couponCode.toUpperCase(), restaurantId: dto.restaurantId } 
-      });
-
-      if (!coupon) throw new BadRequestException('Invalid coupon or does not belong to this restaurant');
-      if (!coupon.isActive) throw new BadRequestException('This coupon is no longer active');
-      if (new Date() > new Date(coupon.expiresAt)) throw new BadRequestException('This coupon has expired');
-      if (coupon.limit > 0 && coupon.uses >= coupon.limit) throw new BadRequestException('This coupon has reached its usage limit');
-      if (subtotal < coupon.min) throw new BadRequestException(`The minimum amount to use this coupon is R$ ${coupon.min}`);
-
-      if (coupon.type === 'percent') {
-        discount = (subtotal * Number(coupon.value)) / 100;
-      } else if (coupon.type === 'fixed') {
-        discount = Number(coupon.value);
-      }
-      
-      // Prevent discount from being greater than subtotal
-      if (discount > subtotal) discount = subtotal;
-      
-      total = subtotal - discount;
-
-      // Increment coupon uses
-      coupon.uses += 1;
-      await this.couponRepository.save(coupon);
-    }
-
-    const order = this.orderRepository.create({
-      userId,
-      customerName: user.name,
-      customerPhone: user.phone || undefined,
-      restaurantId: dto.restaurantId,
-      deliveryAddressId: dto.deliveryAddressId,
-      deliveryStreet: address.street,
-      deliveryCity: address.city,
-      deliveryState: address.state,
-      deliveryZipCode: address.zipCode,
-      paymentMethod: dto.paymentMethod,
-      subtotal,
-      discount: discount > 0 ? discount : undefined,
-      couponCode: dto.couponCode ? dto.couponCode.toUpperCase() : undefined,
-      total,
-      courierFee: total * 0.20,
-      items,
-      deliveryVerificationCode: Math.floor(1000 + Math.random() * 9000).toString(),
-      pickupVerificationCode: Math.floor(1000 + Math.random() * 9000).toString(),
-    });
-    return this.orderRepository.save(order);
-  }
-  async listByUser(userId: number) {
-    return this.orderRepository.find({
-      where: { userId },
-      relations: ['items'],
-      order: { createdAt: 'DESC' },
-    });
-  }
-  async listByRestaurant(restaurantId: number, userId: number) {
-    const restaurant = await this.restaurantRepository.findById(restaurantId);
-    if (!restaurant || restaurant.getOwnerId() !== userId) {
-      throw new ForbiddenException('Access denied to restaurant orders');
-    }
-    return this.orderRepository.find({
-      where: { restaurantId },
-      relations: ['items'],
-      order: { createdAt: 'DESC' },
-    });
-  }
-  async getOne(id: number, userId: number) {
-    const order = await this.orderRepository.findOne({
-      where: { id },
-      relations: ['items'],
-    });
-    if (!order) throw new NotFoundException('Order not found');
-    if (order.userId !== userId) {
-      const restaurant = await this.restaurantRepository.findById(order.restaurantId);
-      if (!restaurant || restaurant.getOwnerId() !== userId) {
-        throw new ForbiddenException('Access denied to the order');
-      }
-    }
-    return order;
-  }
-
-  async cancel(id: number, userId: number, role: string) {
-    const order = await this.orderRepository.findOne({
-      where: { id },
-      relations: ['items'],
-    });
-
-    if (!order) throw new NotFoundException('Order not found');
-
-    if (role === 'CUSTOMER' && order.userId !== userId) {
-      throw new ForbiddenException('Access denied to the order');
-    }
-
-    if (role === 'RESTAURANT') {
-      const restaurant = await this.restaurantRepository.findById(order.restaurantId);
-      if (!restaurant || restaurant.getOwnerId() !== userId) {
-        throw new ForbiddenException('Access denied to restaurant order');
-      }
-    }
-
-    if (['DELIVERED', 'IN_TRANSIT', 'CANCELLED'].includes(order.status)) {
-      throw new BadRequestException(`O pedido não pode ser cancelado no status atual: ${order.status}`);
-    }
-
-    // Increment stock back
-    for (const item of order.items) {
-      const product = await this.productRepository.findOne({ where: { id: item.productId } });
-      if (product) {
-        product.stock += item.quantity;
-        await this.productRepository.save(product);
-      }
-    }
-
-    order.status = 'CANCELLED';
-    await this.orderRepository.save(order);
-    return { message: 'Pedido cancelado com sucesso' };
   }
 }

@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsOptional, IsNotEmpty } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsNotEmpty, Min } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -23,6 +23,7 @@ export class CreateProductDto {
   @Transform(({ value }) => Number(value))
   @IsNumber()
   @IsNotEmpty()
+  @Min(0, { message: 'O preço não pode ser negativo' })
   price: number;
 
   @ApiProperty({ type: 'string', format: 'binary', required: false })
@@ -38,6 +39,7 @@ export class CreateProductDto {
   @Transform(({ value }) => Number(value))
   @IsNumber()
   @IsOptional()
+  @Min(0, { message: 'O estoque não pode ser negativo' })
   stock?: number;
 }
 
@@ -56,6 +58,7 @@ export class UpdateProductDto {
   @Transform(({ value }) => Number(value))
   @IsNumber()
   @IsOptional()
+  @Min(0, { message: 'O preço não pode ser negativo' })
   price?: number;
 
   @ApiProperty({ type: 'string', format: 'binary', required: false })
@@ -71,5 +74,6 @@ export class UpdateProductDto {
   @Transform(({ value }) => Number(value))
   @IsNumber()
   @IsOptional()
+  @Min(0, { message: 'O estoque não pode ser negativo' })
   stock?: number;
 }

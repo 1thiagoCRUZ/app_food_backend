@@ -1,9 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany, Index } from 'typeorm';
 import { OrderItemSchema } from './order-item.schema';
 @Entity('orders')
 export class OrderSchema {
   @PrimaryGeneratedColumn()
   id: number;
+  
+  @Index()
   @Column()
   userId: number; 
 
@@ -13,9 +15,11 @@ export class OrderSchema {
   @Column({ nullable: true })
   customerPhone?: string;
 
+  @Index()
   @Column()
   restaurantId: number; 
 
+  @Index()
   @Column({ nullable: true })
   courierId?: number; 
 
@@ -54,6 +58,8 @@ export class OrderSchema {
 
   @Column('decimal', { precision: 10, scale: 2 })
   total: number;
+  
+  @Index()
   @Column({ default: 'AWAITING_PAYMENT' })
   status: string;
   @Column({ length: 4, nullable: true })

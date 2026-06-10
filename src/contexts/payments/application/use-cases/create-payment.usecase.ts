@@ -6,6 +6,7 @@ import type { PaymentGatewayPort, CreatePaymentResponse } from '../ports/payment
 import { ORDER_REPOSITORY_PORT } from '../../../orders/application/ports/order-repository.port';
 import type { OrderRepositoryPort } from '../../../orders/application/ports/order-repository.port';
 import { Payment } from '../../domain/entities/payment.entity';
+
 export interface CreatePaymentInput {
   orderId: number;
   method: 'PIX' | 'CREDIT_CARD';

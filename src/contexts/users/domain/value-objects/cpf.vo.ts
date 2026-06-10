@@ -15,10 +15,10 @@ export class CPF {
     return new CPF(digits);
   }
 
-  public static reconstitute(rawCpf: string): CPF {
-    const digits = rawCpf.replace(/\D/g, '');
+  public static reconstitute(digits: string): CPF {
     return new CPF(digits);
   }
+
   public getValue(): string {
     return this.value;
   }

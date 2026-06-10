@@ -69,8 +69,6 @@ export class Product {
         this.stock = stock;
         this.updatedAt = new Date();
     }
-
-    // Getters
     public getId(): number | undefined { return this.id; }
     public getRestaurantId(): number { return this.restaurantId; }
     public getName(): string { return this.name; }
